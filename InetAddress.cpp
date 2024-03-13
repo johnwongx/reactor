@@ -2,6 +2,10 @@
 
 #include <sys/socket.h>
 
+InetAddress::InetAddress()
+{
+}
+
 InetAddress::InetAddress(const std::string &ip, uint16_t port)
 {
     addr_.sin_family = AF_INET;
@@ -17,6 +21,11 @@ InetAddress::InetAddress(sockaddr_in addr) : addr_(addr)
 InetAddress::~InetAddress()
 {
 
+}
+
+void InetAddress::setAddr(const sockaddr_in& addr)
+{
+    addr_ = addr;
 }
 
 const sockaddr *InetAddress::addr() const

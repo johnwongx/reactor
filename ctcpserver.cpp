@@ -11,10 +11,9 @@
 #include <arpa/inet.h>
 #include <sys/epoll.h>
 #include <unistd.h>
-#include <fcntl.h>
-#include <netinet/tcp.h>
 
 #include "InetAddress.h"
+#include "Socket.h"
 
 using namespace std;
 
@@ -22,33 +21,15 @@ int main(int argc, char *argv[])
 {
     const unsigned short port = 5005;
 
-    int listenfd = socket(AF_INET, SOCK_STREAM | O_NONBLOCK, IPPROTO_TCP);
-    if(listenfd < 0)
-    {
-        perror("socket()");
-        return -1;
-    }
-
-    // 设置listenfd属性
-    int opt = 1;
-    setsockopt(listenfd, SOL_SOCKET, SO_REUSEADDR, &opt, static_cast<socklen_t>(sizeof(opt)));
-    setsockopt(listenfd, IPPROTO_TCP, TCP_NODELAY, &opt, static_cast<socklen_t>(sizeof(opt)));
+    int listenfd = Socket::createNonBlockSocket();
+    Socket servSoc(listenfd);
+    servSoc.setReuseAddr(true);
+    servSoc.setNoDelay(true);
 
     InetAddress servAddr("127.0.0.1", port);
-    if(bind(listenfd, servAddr.addr(), sizeof(sockaddr)) < 0)
-    {
-        perror("bind() failed!");
-        close(listenfd);
-        return -1;
-    }
+    servSoc.bind(servAddr);
 
-    if(listen(listenfd, 128) != 0)
-    {
-        perror("listen() failed!");
-        close(listenfd);
-        return -1;
-    }
-
+    servSoc.listen();
 
     int epollfd = epoll_create(1);
 
@@ -82,17 +63,18 @@ int main(int argc, char *argv[])
                 if (curfd == listenfd)
                 {
                     // 有新的客户端连接
-                    sockaddr_in peerAddr;
-                    socklen_t sockLen = sizeof peerAddr;
-                    int clientfd = accept4(listenfd, (sockaddr *)&peerAddr, &sockLen, O_NONBLOCK);
+                    InetAddress clientAddr;
+                    int clientfd = servSoc.accept(clientAddr);
                     if (clientfd < 0)
                     {
                         perror("accept()");
                         continue;
                     }
-                    
-                    InetAddress clientAddr(peerAddr);
-                    printf("accept client(fd=%d, ip=%s, port=%d) ok.\n", clientfd, clientAddr.ip(), clientAddr.port());
+                    // TODO: 存在内存泄露需要优化
+                    Socket* clientSoc = new Socket(clientfd);
+
+                    printf("accept client(fd=%d, ip=%s, port=%d) ok.\n", clientSoc->fd(),
+                           clientAddr.ip(), clientAddr.port());
 
                     evt.data.fd = clientfd;
                     evt.events = EPOLLIN | EPOLLET; // 边缘触发
