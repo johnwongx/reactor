@@ -1,3 +1,6 @@
+# IDE work dir
+.vscode/
+
 # Prerequisites
 *.d
 
