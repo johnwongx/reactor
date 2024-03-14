@@ -14,6 +14,7 @@
 
 #include "InetAddress.h"
 #include "Socket.h"
+#include "Epoll.h"
 
 using namespace std;
 
@@ -31,33 +32,22 @@ int main(int argc, char *argv[])
 
     servSoc.listen();
 
-    int epollfd = epoll_create(1);
+    Epoll ep;
+    ep.addFd(listenfd, EPOLLIN);
 
-    epoll_event evt;
-    evt.data.fd = listenfd;
-    evt.events = EPOLLIN;
-
-    epoll_ctl(epollfd, EPOLL_CTL_ADD, listenfd, &evt);
-
-    epoll_event evtList[10];
     while (true)
     {
-        int infds = epoll_wait(epollfd, evtList, 10, -1);
-        if(infds < 0)
-        {
-            perror("epoll_wait()");
-            break;
-        }
-        if(infds == 0)
+        std::vector<epoll_event> evtList = ep.loop(-1);
+        if(evtList.empty())
         {
             cout << "wait timeout" << endl;
             continue;
         }
 
-        for (int i = 0; i < infds; i++)
+        for(const auto& evtItr : evtList)
         {
-            int curfd = evtList[i].data.fd;
-            uint32_t events = evtList[i].events;
+            int curfd = evtItr.data.fd;
+            uint32_t events = evtItr.events;
             if (events & EPOLLIN)
             {
                 if (curfd == listenfd)
@@ -76,10 +66,8 @@ int main(int argc, char *argv[])
                     printf("accept client(fd=%d, ip=%s, port=%d) ok.\n", clientSoc->fd(),
                            clientAddr.ip(), clientAddr.port());
 
-                    evt.data.fd = clientfd;
-                    evt.events = EPOLLIN | EPOLLET; // 边缘触发
-                    // 将客户端添加到epoll 的监听中
-                    epoll_ctl(epollfd, EPOLL_CTL_ADD, clientfd, &evt);
+                    if (!ep.addFd(clientfd, EPOLLIN | EPOLLET))
+                        exit(-1);
                 }
                 else
                 {
