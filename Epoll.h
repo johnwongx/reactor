@@ -2,17 +2,20 @@
 #include <sys/epoll.h>
 #include <vector>
 
+class Channel;
+
 class Epoll
 {
 public:
     Epoll();
     ~Epoll();
 
-    std::vector<epoll_event> loop(int timeout);
-    bool addFd(int fd, int op);
+    std::vector<Channel*> loop(int timeout);
+    bool addChannel(Channel* chan);
 
 private:
-    static const int MaxEventSize = 100;
     int epollfd_;
+
+    static const int MaxEventSize = 100;
     epoll_event evts_[MaxEventSize];
 };

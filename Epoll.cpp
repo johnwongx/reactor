@@ -6,23 +6,21 @@
 #include <iostream>
 #include <string.h>
 
-Epoll::Epoll()
-{
+#include "Channel.h"
+
+Epoll::Epoll(){
     epollfd_ = epoll_create(1);
-    if (epollfd_ == -1)
-    {
+    if (epollfd_ == -1){
         printf("epoll_create() failed(%d)!\n", errno);
         exit(-1);
     }
 }
 
-Epoll::~Epoll()
-{
+Epoll::~Epoll(){
     close(epollfd_);
 }
 
-std::vector<epoll_event> Epoll::loop(int timeout)
-{
+std::vector<Channel*> Epoll::loop(int timeout){
     memset(evts_, 0, sizeof(evts_));
 
     int infds = epoll_wait(epollfd_, evts_, MaxEventSize, timeout);
@@ -37,25 +35,26 @@ std::vector<epoll_event> Epoll::loop(int timeout)
         return {};
     }
 
-    std::vector<epoll_event> res;
+    std::vector<Channel*> res;
     res.reserve(infds);
     for (int i = 0; i < infds; i++)
     {
-        res.push_back(evts_[i]);
+        Channel* chan = (Channel*)(evts_[i].data.ptr);
+        chan->setREvents(evts_[i].events);
+        res.push_back(chan);
     }
     return res;
 }
 
-bool Epoll::addFd(int fd, int op)
-{
+bool Epoll::addChannel(Channel* chan){
     epoll_event evt;
-    evt.data.fd = fd;
-    evt.events = op;
-    int iret = epoll_ctl(epollfd_, EPOLL_CTL_ADD, fd, &evt);
-    if (iret != 0)
-    {
+    evt.data.ptr = chan;
+    evt.events = chan->events();
+    int iret = epoll_ctl(epollfd_, EPOLL_CTL_ADD, chan->fd(), &evt);
+    if (iret != 0){
         perror("add event to epoll failed!");
         return false;
     }
+    chan->setInEpoll(true);
     return true;
 }
