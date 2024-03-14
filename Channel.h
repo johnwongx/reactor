@@ -2,8 +2,8 @@
 #include <stdint.h>
 #include <functional>
 
-#include "Epoll.h"
-#include "Socket.h"
+class EventLoop;
+class Socket;
 
 // 处理事件函数
 typedef std::function<bool(void)> ProcEvtFunc;
@@ -12,7 +12,7 @@ typedef std::function<bool(void)> ProcEvtFunc;
 class Channel
 {
 public:
-    Channel(int fd, Epoll* epoll, bool isListen):fd_(fd), epoll_(epoll) {
+    Channel(int fd, EventLoop* loop, bool isListen):fd_(fd), loop_(loop) {
     }
     ~Channel(){
     }
@@ -57,7 +57,7 @@ public:
 private:
     const int fd_;
 
-    Epoll* epoll_;
+    EventLoop* loop_;
     bool inEpoll_;
 
     uint32_t events_;

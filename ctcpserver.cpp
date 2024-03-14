@@ -15,7 +15,7 @@
 
 #include "InetAddress.h"
 #include "Socket.h"
-#include "Epoll.h"
+#include "EventLoop.h"
 #include "Channel.h"
 
 using namespace std;
@@ -34,39 +34,14 @@ int main(int argc, char *argv[])
 
     servSoc.listen();
 
-    Epoll ep;
+    EventLoop loop;
     // TODO: 释放资源
-    Channel* servChan = new Channel(listenfd, &ep, true);
+    Channel* servChan = new Channel(listenfd, &loop, true);
     servChan->appendEvent(EPOLLIN);
     servChan->setProcessInEvtFunc(std::bind(&Channel::onNewConnection, servChan, &servSoc));
-    ep.addChannel(servChan);
+    loop.addChannel(servChan);
 
-    while (true)
-    {
-        std::vector<Channel*> chanList = ep.loop(-1);
-        if(chanList.empty())
-        {
-            cout << "wait timeout" << endl;
-            continue;
-        }
-
-        for(const auto& chanItr : chanList)
-        {
-            if (!chanItr->handleEvent())
-            {
-                if (chanItr->fd() == listenfd)
-                {
-                    std::cout << "listen fd error!" << std::endl;
-                    exit(-1);
-                }
-                else
-                {
-                    std::cout << "client fd(" << chanItr->fd() << ")error!" << std::endl;
-                    continue;
-                }
-            }
-        }
-    }
+    loop.run();
 
     return 0;
 }

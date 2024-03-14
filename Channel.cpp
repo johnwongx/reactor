@@ -1,6 +1,14 @@
 #include "Channel.h"
 
 #include <strings.h>
+#include <stdio.h>
+
+#include <sys/epoll.h>
+#include <unistd.h>
+
+#include "InetAddress.h"
+#include "Socket.h"
+#include "EventLoop.h"
 
 bool Channel::handleEvent()
 {
@@ -41,10 +49,10 @@ bool Channel::onNewConnection(Socket *servSock)
     printf("accept client(fd=%d, ip=%s, port=%d) ok.\n", clientSoc->fd(),
            clientAddr.ip(), clientAddr.port());
 
-    Channel *clientChan = new Channel(clientfd, epoll_, false);
+    Channel *clientChan = new Channel(clientfd, loop_, false);
     clientChan->setEvents(EPOLLIN | EPOLLET);
     clientChan->setProcessInEvtFunc(std::bind(&Channel::onMessage, clientChan));
-    if (!epoll_->addChannel(clientChan))
+    if (!loop_->addChannel(clientChan))
         return false;
     
     return true;
