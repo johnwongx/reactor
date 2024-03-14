@@ -11,6 +11,7 @@
 #include <arpa/inet.h>
 #include <sys/epoll.h>
 #include <unistd.h>
+#include <fcntl.h>
 
 #include "InetAddress.h"
 #include "Socket.h"
@@ -37,6 +38,7 @@ int main(int argc, char *argv[])
     // TODO: 释放资源
     Channel* servChan = new Channel(listenfd, &ep, true);
     servChan->appendEvent(EPOLLIN);
+    servChan->setProcessInEvtFunc(std::bind(&Channel::onNewConnection, servChan, &servSoc));
     ep.addChannel(servChan);
 
     while (true)
@@ -50,9 +52,9 @@ int main(int argc, char *argv[])
 
         for(const auto& chanItr : chanList)
         {
-            if (!chanItr->handleEvent(servSoc))
+            if (!chanItr->handleEvent())
             {
-                if (chanItr->isListen())
+                if (chanItr->fd() == listenfd)
                 {
                     std::cout << "listen fd error!" << std::endl;
                     exit(-1);
