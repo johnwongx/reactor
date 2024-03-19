@@ -1,3 +1,6 @@
+/*
+执行事件循环，以及向epoll中添加fd
+*/
 #pragma once
 #include <sys/epoll.h>
 #include <vector>

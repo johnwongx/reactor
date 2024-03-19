@@ -1,3 +1,6 @@
+/*
+原始ip,port结构类封装
+*/
 #pragma once
 #include <arpa/inet.h>
 #include <netinet/in.h>

@@ -1,3 +1,6 @@
+/*
+用于处理fd发送过来的事件
+*/
 #pragma once
 #include <stdint.h>
 #include <functional>

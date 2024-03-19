@@ -1,3 +1,6 @@
+/*
+服务器封装，负责启动与运行
+*/
 #pragma once
 #include <string>
 
