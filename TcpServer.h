@@ -5,6 +5,7 @@
 #include <string>
 
 #include "EventLoop.h"
+#include "Acceptor.h"
 
 class TcpServer
 {
@@ -16,4 +17,5 @@ public:
 
 private:
    EventLoop loop_; 
+   Acceptor* acceptor_;
 };

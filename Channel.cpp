@@ -9,6 +9,7 @@
 #include "InetAddress.h"
 #include "Socket.h"
 #include "EventLoop.h"
+#include "Connector.h"
 
 bool Channel::handleEvent()
 {
@@ -43,18 +44,12 @@ bool Channel::onNewConnection(Socket *servSock)
         perror("accept()");
         return false;
     }
-    // TODO: 存在内存泄露需要优化
-    Socket *clientSoc = new Socket(clientfd);
-
-    printf("accept client(fd=%d, ip=%s, port=%d) ok.\n", clientSoc->fd(),
+    printf("accept client(fd=%d, ip=%s, port=%d) ok.\n", clientfd,
            clientAddr.ip(), clientAddr.port());
 
-    Channel *clientChan = new Channel(clientfd, loop_, false);
-    clientChan->setEvents(EPOLLIN | EPOLLET);
-    clientChan->setProcessInEvtFunc(std::bind(&Channel::onMessage, clientChan));
-    if (!loop_->addChannel(clientChan))
-        return false;
-    
+    // TODO: 存在内存泄露需要优化
+    Connector *conn = new Connector(loop_, clientfd);
+
     return true;
 }
 
