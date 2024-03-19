@@ -2,9 +2,10 @@
 
 #include <strings.h>
 #include <stdio.h>
+#include <unistd.h>
+#include <cassert>
 
 #include <sys/epoll.h>
-#include <unistd.h>
 
 #include "InetAddress.h"
 #include "Socket.h"
@@ -27,8 +28,8 @@ bool Channel::handleEvent()
     else
     {
         // 其他事件都视为错误
-        printf("client(fd=%d) error.\n", fd_);
-        close(fd_);
+        assert(connErrorCallback_ != nullptr);
+        connCloseCallback_(fd_);
         return false;
     }
 
@@ -64,8 +65,8 @@ bool Channel::onMessage()
         else if (readLen == 0)
         {
             // 客户端断开连接
-            printf("client(fd=%d) disconnect.\n", fd_);
-            close(fd_);
+            assert(connCloseCallback_ != nullptr);
+            connCloseCallback_(fd_);
             return true;
         }
     }

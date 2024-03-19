@@ -1,9 +1,9 @@
 #include "TcpServer.h"
 
 #include <functional>
+#include <cassert>
 
 #include "Socket.h"
-#include "Connector.h"
 
 TcpServer::TcpServer(const std::string &ip, int port){
     acceptor_ = new Acceptor(&loop_, ip, port);
@@ -13,6 +13,10 @@ TcpServer::TcpServer(const std::string &ip, int port){
 
 TcpServer::~TcpServer(){
     delete acceptor_;
+
+    for(auto&& itr : connectors_) {
+        delete itr.second;
+    }
 }
 
 void TcpServer::start(){
@@ -20,6 +24,26 @@ void TcpServer::start(){
 }
 
 void TcpServer::createNewConnector(int clientFd){
-    // TODO: 存在内存泄露需要优化
     Connector *conn = new Connector(&loop_, clientFd);
+    conn->setCloseCallback(std::bind(&TcpServer::connCloseCallback, this,
+                                     std::placeholders::_1));
+    conn->setErrorCallback(std::bind(&TcpServer::connErrorCallback, this,
+                                     std::placeholders::_1));
+    connectors_[conn->fd()] = conn;
+}
+
+void TcpServer::connCloseCallback(int fd){
+    printf("client(fd=%d) disconnect.\n", fd);
+
+    assert(connectors_.end() != connectors_.find(fd));
+    delete connectors_[fd];
+    connectors_.erase(fd);
+}
+
+void TcpServer::connErrorCallback(int fd){
+    printf("client(fd=%d) error, close connection.\n", fd);
+
+    assert(connectors_.end() != connectors_.find(fd));
+    delete connectors_[fd];
+    connectors_.erase(fd);
 }

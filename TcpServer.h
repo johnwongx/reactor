@@ -3,9 +3,11 @@
 */
 #pragma once
 #include <string>
+#include <map>
 
 #include "EventLoop.h"
 #include "Acceptor.h"
+#include "Connector.h"
 
 class TcpServer
 {
@@ -17,7 +19,11 @@ public:
 
     void createNewConnector(int clientFd);
 
+    void connCloseCallback(int fd);
+    void connErrorCallback(int fd);
+
 private:
    EventLoop loop_; 
    Acceptor* acceptor_;
+   std::map<int /*fd*/, Connector*> connectors_;
 };

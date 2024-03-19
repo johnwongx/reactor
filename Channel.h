@@ -56,6 +56,14 @@ public:
 
     bool onMessage();
 
+    void setCloseCallback(std::function<void(int)> fn) {
+        connCloseCallback_ = fn;
+    }
+
+    void setErrorCallback(std::function<void(int)> fn) {
+        connCloseCallback_ = fn;
+    }
+
 private:
     const int fd_;
 
@@ -66,4 +74,6 @@ private:
     uint32_t rEvents_;
 
     std::function<bool()> inEvtFunc_;
+    std::function<void(int)> connCloseCallback_;
+    std::function<void(int)> connErrorCallback_;
 };
