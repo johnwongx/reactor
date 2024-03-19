@@ -15,6 +15,8 @@ public:
 
     void start();
 
+    void createNewConnector(int clientFd);
+
 private:
    EventLoop loop_; 
    Acceptor* acceptor_;

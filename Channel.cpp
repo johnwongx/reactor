@@ -35,24 +35,6 @@ bool Channel::handleEvent()
     return true;
 }
 
-bool Channel::onNewConnection(Socket *servSock)
-{ // 有新的客户端连接
-    InetAddress clientAddr;
-    int clientfd = servSock->accept(clientAddr);
-    if (clientfd < 0)
-    {
-        perror("accept()");
-        return false;
-    }
-    printf("accept client(fd=%d, ip=%s, port=%d) ok.\n", clientfd,
-           clientAddr.ip(), clientAddr.port());
-
-    // TODO: 存在内存泄露需要优化
-    Connector *conn = new Connector(loop_, clientfd);
-
-    return true;
-}
-
 bool Channel::onMessage()
 { // 边缘触发需要循环读取
     char buffer[1024];

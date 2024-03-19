@@ -54,7 +54,6 @@ public:
 
     bool handleEvent();
 
-    bool onNewConnection(Socket* servSock);
     bool onMessage();
 
 private:
