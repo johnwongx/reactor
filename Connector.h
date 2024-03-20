@@ -5,6 +5,7 @@
 #include "Socket.h"
 #include "Channel.h"
 #include "EventLoop.h"
+#include "Buffer.h"
 
 class Connector {
 public:
@@ -16,13 +17,23 @@ public:
     }
 
     void setCloseCallback(std::function<void(int)> fn) {
+        connCloseCallback_ = fn;
         chan_->setCloseCallback(fn);
     }
 
     void setErrorCallback(std::function<void(int)> fn) {
         chan_->setErrorCallback(fn);
     }
+
+private:
+    bool onMessage();
+
 private:
     Socket* socket_;
     Channel* chan_;
+
+    Buffer inBuf_;
+    Buffer outBuf_;
+    
+    std::function<void(int)> connCloseCallback_;
 };

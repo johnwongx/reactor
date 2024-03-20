@@ -54,8 +54,6 @@ public:
 
     bool handleEvent();
 
-    bool onMessage();
-
     void setCloseCallback(std::function<void(int)> fn) {
         connCloseCallback_ = fn;
     }
