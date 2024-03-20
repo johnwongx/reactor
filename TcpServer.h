@@ -2,28 +2,30 @@
 服务器封装，负责启动与运行
 */
 #pragma once
-#include <string>
 #include <map>
+#include <string>
 
-#include "EventLoop.h"
 #include "Acceptor.h"
+#include "Buffer.h"
 #include "Connector.h"
+#include "EventLoop.h"
 
-class TcpServer
-{
+class TcpServer {
 public:
-    TcpServer(const std::string& ip, int port);
-    ~TcpServer();
+  TcpServer(const std::string &ip, int port);
+  ~TcpServer();
 
-    void start();
+  void start();
 
-    void createNewConnector(int clientFd);
+  void createNewConnector(int clientFd);
 
-    void connCloseCallback(int fd);
-    void connErrorCallback(int fd);
+  void connCloseCallback(int fd);
+  void connErrorCallback(int fd);
+
+  void onConnMessage(Connector *conn, const Buffer &msg);
 
 private:
-   EventLoop loop_; 
-   Acceptor* acceptor_;
-   std::map<int /*fd*/, Connector*> connectors_;
+  EventLoop loop_;
+  Acceptor *acceptor_;
+  std::map<int /*fd*/, Connector *> connectors_;
 };

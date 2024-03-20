@@ -1,3 +1,7 @@
+# Other
+core
+core.*
+
 # IDE work dir
 .vscode/
 
