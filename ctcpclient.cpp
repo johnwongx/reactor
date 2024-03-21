@@ -25,6 +25,7 @@ class ctcpclient {
     // 第1步：创建客户端的socket。
     m_sockfd = socket(AF_INET, SOCK_STREAM, 0);
     if (m_sockfd == -1) return false;
+    printf("client fd:%d\n", m_sockfd);
 
     timeval tv;
     tv.tv_sec = 1;
@@ -115,7 +116,7 @@ int main(int argc, char *argv[]) {
   }
 
   char buffer[1024];
-  size_t kMsgCount = 100;
+  size_t kMsgCount = 10;
   const uint32_t kHeaderLen = sizeof(uint32_t);
   for (int i = 0; i < kMsgCount; i++) {
     uint32_t len = 0;

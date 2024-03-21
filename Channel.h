@@ -2,10 +2,10 @@
 用于处理fd发送过来的事件
 */
 #pragma once
-#include <functional>
 #include <stdint.h>
-
 #include <sys/epoll.h>
+
+#include <functional>
 
 class EventLoop;
 
@@ -14,8 +14,9 @@ typedef std::function<bool()> ProcEvtFunc;
 
 // 记录与处理事件
 class Channel {
-public:
-  Channel(int fd, EventLoop *loop, bool isListen) : fd_(fd), loop_(loop) {}
+ public:
+  Channel(int fd, EventLoop *loop, bool isListen)
+      : fd_(fd), loop_(loop), inEpoll_(false) {}
   ~Channel() {}
 
   int fd() const { return fd_; }
@@ -53,18 +54,18 @@ public:
     connCloseCallback_ = fn;
   }
 
-private:
+ private:
   void enable(uint32_t evt) { events_ |= evt; }
   void disable(uint32_t evt) { events_ &= ~evt; }
 
-private:
+ private:
   const int fd_;
 
   EventLoop *loop_;
   bool inEpoll_;
 
-  uint32_t events_;  // 监听的事件
-  uint32_t rEvents_; // 收到的事件
+  uint32_t events_;   // 监听的事件
+  uint32_t rEvents_;  // 收到的事件
 
   std::function<bool()> inEvtFunc_;
   std::function<bool()> outEvtFunc_;

@@ -1,11 +1,11 @@
 #include "Channel.h"
 
-#include <cassert>
 #include <stdio.h>
 #include <strings.h>
+#include <sys/epoll.h>
 #include <unistd.h>
 
-#include <sys/epoll.h>
+#include <cassert>
 
 #include "Connector.h"
 #include "EventLoop.h"
@@ -13,13 +13,11 @@
 
 bool Channel::handleEvent() {
   if (rEvents_ & EPOLLIN) {
-    if (!inEvtFunc_)
-      return false;
+    if (!inEvtFunc_) return false;
 
     return inEvtFunc_();
   } else if (rEvents_ & EPOLLOUT) {
-    if (!outEvtFunc_)
-      return false;
+    if (!outEvtFunc_) return false;
     return outEvtFunc_();
   } else {
     // 其他事件都视为错误
