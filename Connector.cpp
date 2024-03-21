@@ -3,15 +3,18 @@
 #include <assert.h>
 #include <cassert>
 #include <functional>
+#include <iostream>
 #include <strings.h>
 
 Connector::Connector(EventLoop *loop, int clientfd) {
   socket_ = new Socket(clientfd);
 
   chan_ = new Channel(clientfd, loop, false);
-  chan_->setEvents(EPOLLIN | EPOLLET);
-  chan_->setProcessInEvtFunc(std::bind(&Connector::onMessage, this));
-  assert(loop->addChannel(chan_));
+  chan_->enableRead();
+  chan_->enableET();
+  chan_->setInEvtCallbackFunc(std::bind(&Connector::onMessage, this));
+  chan_->setOutEvtCallbackFunc(std::bind(&Connector::onSend, this));
+  loop->updateChannel(chan_);
 }
 
 Connector::~Connector() {
@@ -33,14 +36,15 @@ bool Connector::onMessage() {
         // 读取时被信号中断，继续读取
         continue;
       } else if (errno == EAGAIN || errno == EWOULDBLOCK) {
+        Buffer curBuf;
         while (true) {
-          if (!outBuf_.readOneMessageWith32Header(inBuf_)) {
+          if (!curBuf.readOneMessageWith32Header(inBuf_)) {
             // 读取消息不完整，等待完整后再次读取
             break;
           }
 
-          inBuf_.erase(0, outBuf_.size() + 4);
-          messageCallback_(this, outBuf_);
+          inBuf_.erase(0, curBuf.size() + 4);
+          messageCallback_(this, curBuf);
         }
 
         break;
@@ -53,5 +57,31 @@ bool Connector::onMessage() {
     }
   }
 
+  return true;
+}
+
+void Connector::send(const char *data, size_t size) {
+  // 将数据加入到输出缓冲区，并监听写事件
+  outBuf_.append(data, size);
+  chan_->enableWrite();
+  chan_->flushEvents();
+}
+
+bool Connector::onSend() {
+  // 发送缓冲区中的事件
+  if (outBuf_.size() > 0) {
+    int sendLen = ::send(fd(), outBuf_.data(), outBuf_.size(), 0);
+    if (sendLen < 0) {
+      perror("send() failed");
+      return false;
+    }
+    outBuf_.erase(0, sendLen);
+  }
+
+  // 所有数据发送完毕后取消读事件监听
+  if (outBuf_.size() == 0) {
+    chan_->disableWrite();
+    chan_->flushEvents();
+  }
   return true;
 }

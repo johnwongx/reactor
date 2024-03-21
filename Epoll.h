@@ -7,18 +7,17 @@
 
 class Channel;
 
-class Epoll
-{
+class Epoll {
 public:
-    Epoll();
-    ~Epoll();
+  Epoll();
+  ~Epoll();
 
-    std::vector<Channel*> loop(int timeout);
-    bool addChannel(Channel* chan);
+  std::vector<Channel *> loop(int timeout);
+  bool updateChannel(Channel *chan);
 
 private:
-    int epollfd_;
+  int epollfd_;
 
-    static const int MaxEventSize = 100;
-    epoll_event evts_[MaxEventSize];
+  static const int MaxEventSize = 100;
+  epoll_event evts_[MaxEventSize];
 };

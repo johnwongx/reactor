@@ -27,8 +27,11 @@ public:
     messageCallback_ = fn;
   }
 
+  void send(const char *data, size_t size);
+
 private:
   bool onMessage();
+  bool onSend();
 
 private:
   Socket *socket_;

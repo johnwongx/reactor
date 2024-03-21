@@ -58,8 +58,5 @@ void TcpServer::onConnMessage(Connector *conn, const Buffer &msg) {
   sendMsg.append(msg.data(), msg.size());
 
   printf("recv(clientfd=%d):%s\n", conn->fd(), msg.data());
-  // printf("\tsend msg:%s\n", sendMsg.data() + 4);
-  if (send(conn->fd(), sendMsg.data(), sendMsg.length(), 0) == -1) {
-    perror("send() failed!");
-  }
+  conn->send(sendMsg.data(), sendMsg.length());
 }

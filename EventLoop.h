@@ -2,18 +2,18 @@
 主事件循环，负责epoll调用
 */
 #pragma once
-#include "Epoll.h"
 #include "Channel.h"
+#include "Epoll.h"
 
 class EventLoop {
 public:
-    EventLoop();
-    ~EventLoop();
+  EventLoop();
+  ~EventLoop();
 
-    void run();
+  void run();
 
-    bool addChannel(Channel* chan);
+  bool updateChannel(Channel *chan);
 
 private:
-    Epoll* ep_;
+  Epoll *ep_;
 };
