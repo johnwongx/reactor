@@ -11,7 +11,7 @@
 #include "EventLoop.h"
 
 class TcpServer {
-public:
+ public:
   TcpServer(const std::string &ip, int port);
   ~TcpServer();
 
@@ -24,7 +24,11 @@ public:
 
   void onConnMessage(Connector *conn, const Buffer &msg);
 
-private:
+  void onSendComplete(int fd);
+
+  void onEpollTimeout(EventLoop *loop);
+
+ private:
   EventLoop loop_;
   Acceptor *acceptor_;
   std::map<int /*fd*/, Connector *> connectors_;

@@ -1,12 +1,16 @@
 #include "TcpServer.h"
 
+#include <string.h>
+
 #include <cassert>
 #include <functional>
-#include <string.h>
 
 #include "Socket.h"
 
 TcpServer::TcpServer(const std::string &ip, int port) {
+  loop_.setEpollTimeoutCallback(
+      std::bind(&TcpServer::onEpollTimeout, this, std::placeholders::_1));
+
   acceptor_ = new Acceptor(&loop_, ip, port);
   acceptor_->setCreateConnectorCallback(
       std::bind(&TcpServer::createNewConnector, this, std::placeholders::_1));
@@ -31,6 +35,8 @@ void TcpServer::createNewConnector(int clientFd) {
   conn->setMessageCallback(std::bind(&TcpServer::onConnMessage, this,
                                      std::placeholders::_1,
                                      std::placeholders::_2));
+  conn->setSendCompleteCallback(
+      std::bind(&TcpServer::onSendComplete, this, std::placeholders::_1));
   connectors_[conn->fd()] = conn;
 }
 
@@ -60,3 +66,9 @@ void TcpServer::onConnMessage(Connector *conn, const Buffer &msg) {
   printf("recv(clientfd=%d):%s\n", conn->fd(), msg.data());
   conn->send(sendMsg.data(), sendMsg.length());
 }
+
+void TcpServer::onSendComplete(int fd) {
+  printf("client(%d) send message success!\n", fd);
+}
+
+void TcpServer::onEpollTimeout(EventLoop *loop) { printf("Epoll timeout!\n"); }

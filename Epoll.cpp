@@ -24,6 +24,7 @@ std::vector<Channel *> Epoll::loop(int timeout) {
 
   int infds = epoll_wait(epollfd_, evts_, MaxEventSize, timeout);
   if (infds < 0) {
+    // 程序错误或者信号中断
     perror("epoll_wait() failed!");
     exit(-1);
   } else if (infds == 0) {

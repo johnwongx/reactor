@@ -8,7 +8,7 @@
 #include "Socket.h"
 
 class Connector {
-public:
+ public:
   Connector(EventLoop *loop, int clientfd);
   ~Connector();
 
@@ -27,13 +27,17 @@ public:
     messageCallback_ = fn;
   }
 
+  void setSendCompleteCallback(std::function<void(int)> fn) {
+    sendCompleteCallback_ = fn;
+  }
+
   void send(const char *data, size_t size);
 
-private:
+ private:
   bool onMessage();
   bool onSend();
 
-private:
+ private:
   Socket *socket_;
   Channel *chan_;
 
@@ -42,4 +46,5 @@ private:
 
   std::function<void(int)> connCloseCallback_;
   std::function<void(Connector *, const Buffer &)> messageCallback_;
+  std::function<void(int)> sendCompleteCallback_;
 };

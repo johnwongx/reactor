@@ -15,9 +15,9 @@ bool EventLoop::updateChannel(Channel *chan) {
 
 void EventLoop::run() {
   while (true) {
-    std::vector<Channel *> chanList = ep_->loop(-1);
+    std::vector<Channel *> chanList = ep_->loop(5 * 1000);
     if (chanList.empty()) {
-      std::cout << "wait timeout" << std::endl;
+      epollTimeoutCallback_(this);
       continue;
     }
 

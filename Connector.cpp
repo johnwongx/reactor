@@ -1,10 +1,11 @@
 #include "Connector.h"
 
 #include <assert.h>
+#include <strings.h>
+
 #include <cassert>
 #include <functional>
 #include <iostream>
-#include <strings.h>
 
 Connector::Connector(EventLoop *loop, int clientfd) {
   socket_ = new Socket(clientfd);
@@ -82,6 +83,8 @@ bool Connector::onSend() {
   if (outBuf_.size() == 0) {
     chan_->disableWrite();
     chan_->flushEvents();
+
+    sendCompleteCallback_(fd());
   }
   return true;
 }

@@ -6,7 +6,7 @@
 #include "Epoll.h"
 
 class EventLoop {
-public:
+ public:
   EventLoop();
   ~EventLoop();
 
@@ -14,6 +14,11 @@ public:
 
   bool updateChannel(Channel *chan);
 
-private:
+  void setEpollTimeoutCallback(std::function<void(EventLoop *)> fn) {
+    epollTimeoutCallback_ = fn;
+  }
+
+ private:
   Epoll *ep_;
+  std::function<void(EventLoop *)> epollTimeoutCallback_;
 };
