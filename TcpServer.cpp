@@ -38,12 +38,15 @@ void TcpServer::createNewConnector(int clientFd) {
   conn->setSendCompleteCallback(
       std::bind(&TcpServer::onSendComplete, this, std::placeholders::_1));
   connectors_[conn->fd()] = conn;
+
+  if (newConnectorCallback_) newConnectorCallback_(conn);
 }
 
 void TcpServer::connCloseCallback(int fd) {
-  printf("client(fd=%d) disconnect.\n", fd);
-
   assert(connectors_.end() != connectors_.find(fd));
+
+  if (connectorCloseCallback_) connectorCloseCallback_(connectors_[fd]);
+
   delete connectors_[fd];
   connectors_.erase(fd);
 }
@@ -57,14 +60,7 @@ void TcpServer::connErrorCallback(int fd) {
 }
 
 void TcpServer::onConnMessage(Connector *conn, const Buffer &msg) {
-  std::string sendMsg;
-  sendMsg.resize(4);
-  uint32_t len = msg.size();
-  memcpy(sendMsg.data(), (char *)&len, 4);
-  sendMsg.append(msg.data(), msg.size());
-
-  printf("recv(clientfd=%d):%s\n", conn->fd(), msg.data());
-  conn->send(sendMsg.data(), sendMsg.length());
+  if (messageCallback_) messageCallback_(conn, msg);
 }
 
 void TcpServer::onSendComplete(int fd) {

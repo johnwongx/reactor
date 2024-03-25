@@ -28,8 +28,25 @@ class TcpServer {
 
   void onEpollTimeout(EventLoop *loop);
 
+  void setMessageCallback(
+      std::function<void(Connector *, const Buffer &msg)> fn) {
+    messageCallback_ = fn;
+  }
+
+  void setNewConnectorCallback(std::function<void(Connector *)> fn) {
+    newConnectorCallback_ = fn;
+  }
+
+  void setConnectorCloseCallback(std::function<void(Connector *)> fn) {
+    connectorCloseCallback_ = fn;
+  }
+
  private:
   EventLoop loop_;
   Acceptor *acceptor_;
   std::map<int /*fd*/, Connector *> connectors_;
+
+  std::function<void(Connector *, const Buffer &msg)> messageCallback_;
+  std::function<void(Connector *)> newConnectorCallback_;
+  std::function<void(Connector *)> connectorCloseCallback_;
 };
