@@ -7,7 +7,7 @@
 #include <functional>
 #include <iostream>
 
-Connector::Connector(EventLoop *loop, int clientfd) {
+Connector::Connector(EventLoop* loop, int clientfd) {
   socket_ = new Socket(clientfd);
 
   chan_ = new Channel(clientfd, loop, false);
@@ -61,9 +61,9 @@ bool Connector::onMessage() {
   return true;
 }
 
-void Connector::send(const char *data, size_t size) {
+void Connector::send(const Buffer& info) {
   // 将数据加入到输出缓冲区，并监听写事件
-  outBuf_.append(data, size);
+  outBuf_.append(info.data(), info.size());
   chan_->enableWrite();
   chan_->flushEvents();
 }

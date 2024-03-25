@@ -15,14 +15,13 @@ EchoServer::EchoServer(const std::string& ip, int port) : tcpServ_(ip, port) {
 EchoServer::~EchoServer() {}
 
 void EchoServer::HandleMessage(Connector* conn, const Buffer& msg) {
-  std::string sendMsg;
-  sendMsg.resize(4);
-  uint32_t len = msg.size();
-  memcpy(sendMsg.data(), (char*)&len, 4);
+  std::string sendMsg("recv:");
   sendMsg.append(msg.data(), msg.size());
+  Buffer sendBuf;
+  sendBuf.appendWithHeader(sendMsg.data(), sendMsg.size());
 
   printf("recv(clientfd=%d):%s\n", conn->fd(), msg.data());
-  conn->send(sendMsg.data(), sendMsg.length());
+  conn->send(sendBuf);
 }
 
 void EchoServer::HandleNewConnector(Connector* conn) {

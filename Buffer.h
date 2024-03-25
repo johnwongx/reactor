@@ -3,14 +3,16 @@
 */
 #pragma once
 #include <assert.h>
+
 #include <string>
 
 class Buffer {
-public:
+ public:
   Buffer() = default;
   ~Buffer() = default;
 
   void append(const char *data, size_t size) { data_.append(data, size); }
+  void appendWithHeader(const char *data, size_t size);
 
   void clear() { data_.clear(); }
 
@@ -26,6 +28,6 @@ public:
     data_.erase(pos, len);
   }
 
-private:
+ private:
   std::string data_;
 };

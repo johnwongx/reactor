@@ -31,7 +31,7 @@ class Connector {
     sendCompleteCallback_ = fn;
   }
 
-  void send(const char *data, size_t size);
+  void send(const Buffer &info);
 
  private:
   bool onMessage();
