@@ -4,7 +4,7 @@
 
 class EchoServer {
  public:
-  EchoServer(const std::string& ip, int port);
+  EchoServer(const std::string& ip, int port, size_t threadNum = 3);
   ~EchoServer();
 
   void Start() { tcpServ_.start(); }

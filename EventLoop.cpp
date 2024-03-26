@@ -1,5 +1,8 @@
 #include "EventLoop.h"
 
+#include <sys/syscall.h>
+#include <unistd.h>
+
 #include <iostream>
 
 EventLoop::EventLoop() : ep_(std::make_shared<Epoll>()) {}
@@ -11,6 +14,8 @@ bool EventLoop::updateChannel(ChannelPtr chan) {
 }
 
 void EventLoop::run() {
+  // printf("EventLoop::run() at thread(%ld).\n", syscall(SYS_gettid));
+
   while (true) {
     std::vector<ChannelPtr> chanList = ep_->loop(5 * 1000);
     if (chanList.empty()) {

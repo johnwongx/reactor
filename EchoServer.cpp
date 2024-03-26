@@ -2,7 +2,8 @@
 
 #include <string.h>
 
-EchoServer::EchoServer(const std::string& ip, int port) : tcpServ_(ip, port) {
+EchoServer::EchoServer(const std::string& ip, int port, size_t threadNum)
+    : tcpServ_(ip, port, threadNum) {
   tcpServ_.setNewConnectorCallback(
       std::bind(&EchoServer::HandleNewConnector, this, std::placeholders::_1));
   tcpServ_.setConnectorCloseCallback(

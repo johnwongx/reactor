@@ -10,10 +10,11 @@
 #include "Buffer.h"
 #include "Connector.h"
 #include "EventLoop.h"
+#include "utils/ThreadPool.h"
 
 class TcpServer {
  public:
-  TcpServer(const std::string &ip, int port, size_t threadNum = 3);
+  TcpServer(const std::string &ip, int port, size_t threadNum);
   ~TcpServer();
 
   void start();
@@ -45,6 +46,7 @@ class TcpServer {
  private:
   EventLoopPtr mainLoop_;
   std::vector<EventLoopPtr> subLoops_;
+  ThreadPoolPtr threadPool_;
   size_t threadNum_;
   AcceptorPtr acceptor_;
   std::map<int /*fd*/, ConnectorPtr> connectors_;

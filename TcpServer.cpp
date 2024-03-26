@@ -13,6 +13,16 @@ TcpServer::TcpServer(const std::string &ip, int port, size_t threadNum)
   mainLoop_->setEpollTimeoutCallback(
       std::bind(&TcpServer::onEpollTimeout, this, std::placeholders::_1));
 
+  threadPool_ = std::make_shared<ThreadPool>(threadNum_);
+  for (size_t i = 0; i < threadNum_; i++) {
+    EventLoopPtr loop = std::make_shared<EventLoop>();
+    loop->setEpollTimeoutCallback(
+        std::bind(&TcpServer::onEpollTimeout, this, std::placeholders::_1));
+    subLoops_.push_back(loop);
+
+    threadPool_->AddTask([&, i] { subLoops_[i]->run(); });
+  }
+
   acceptor_ = std::make_shared<Acceptor>(mainLoop_, ip, port);
   acceptor_->setCreateConnectorCallback(
       std::bind(&TcpServer::createNewConnector, this, std::placeholders::_1));
@@ -23,7 +33,8 @@ TcpServer::~TcpServer() {}
 void TcpServer::start() { mainLoop_->run(); }
 
 void TcpServer::createNewConnector(int clientFd) {
-  ConnectorPtr conn = std::make_shared<Connector>(mainLoop_, clientFd);
+  ConnectorPtr conn =
+      std::make_shared<Connector>(subLoops_[clientFd % threadNum_], clientFd);
   conn->setCloseCallback(
       std::bind(&TcpServer::connCloseCallback, this, std::placeholders::_1));
   conn->setErrorCallback(
@@ -57,10 +68,6 @@ void TcpServer::onConnMessage(ConnectorPtr conn, const Buffer &msg) {
   if (messageCallback_) messageCallback_(conn, msg);
 }
 
-void TcpServer::onSendComplete(int fd) {
-  printf("client(%d) send message success!\n", fd);
-}
+void TcpServer::onSendComplete(int fd) {}
 
-void TcpServer::onEpollTimeout(EventLoopPtr loop) {
-  printf("Epoll timeout!\n");
-}
+void TcpServer::onEpollTimeout(EventLoopPtr loop) {}

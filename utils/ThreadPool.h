@@ -3,6 +3,7 @@
 #include <atomic>
 #include <condition_variable>
 #include <functional>
+#include <memory>
 #include <mutex>
 #include <queue>
 #include <thread>
@@ -22,3 +23,5 @@ class ThreadPool {
   std::queue<std::function<void()>> tasks_;
   std::atomic_bool stop_;
 };
+
+typedef std::shared_ptr<ThreadPool> ThreadPoolPtr;

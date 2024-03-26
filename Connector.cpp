@@ -2,6 +2,8 @@
 
 #include <assert.h>
 #include <strings.h>
+#include <sys/syscall.h>
+#include <unistd.h>
 
 #include <cassert>
 #include <functional>
@@ -21,6 +23,8 @@ Connector::Connector(EventLoopPtr loop, int clientfd) {
 Connector::~Connector() {}
 
 bool Connector::onMessage() {
+  // printf("Connector::onMessage() thread(%ld).\n", syscall(SYS_gettid));
+
   // 边缘触发需要循环读取
   char buffer[1024];
   while (true) {
