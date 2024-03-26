@@ -7,10 +7,10 @@
 #include <functional>
 #include <iostream>
 
-Connector::Connector(EventLoop* loop, int clientfd) {
-  socket_ = new Socket(clientfd);
+Connector::Connector(EventLoopPtr loop, int clientfd) {
+  socket_ = std::make_shared<Socket>(clientfd);
 
-  chan_ = new Channel(clientfd, loop, false);
+  chan_ = std::make_shared<Channel>(clientfd, loop, false);
   chan_->enableRead();
   chan_->enableET();
   chan_->setInEvtCallbackFunc(std::bind(&Connector::onMessage, this));
@@ -18,10 +18,7 @@ Connector::Connector(EventLoop* loop, int clientfd) {
   loop->updateChannel(chan_);
 }
 
-Connector::~Connector() {
-  delete socket_;
-  delete chan_;
-}
+Connector::~Connector() {}
 
 bool Connector::onMessage() {
   // 边缘触发需要循环读取
@@ -45,7 +42,7 @@ bool Connector::onMessage() {
           }
 
           inBuf_.erase(0, curBuf.size() + 4);
-          messageCallback_(this, curBuf);
+          messageCallback_(shared_from_this(), curBuf);
         }
 
         break;

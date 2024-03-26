@@ -27,4 +27,7 @@ bool Channel::handleEvent() {
   }
 }
 
-void Channel::flushEvents() { loop_->updateChannel(this); }
+void Channel::flushEvents() {
+  if (!loop_.lock()) return;
+  loop_.lock()->updateChannel(shared_from_this());
+}

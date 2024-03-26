@@ -19,7 +19,7 @@ Epoll::Epoll() {
 
 Epoll::~Epoll() { close(epollfd_); }
 
-std::vector<Channel *> Epoll::loop(int timeout) {
+std::vector<ChannelPtr> Epoll::loop(int timeout) {
   memset(evts_, 0, sizeof(evts_));
 
   int infds = epoll_wait(epollfd_, evts_, MaxEventSize, timeout);
@@ -31,19 +31,20 @@ std::vector<Channel *> Epoll::loop(int timeout) {
     return {};
   }
 
-  std::vector<Channel *> res;
+  std::vector<ChannelPtr> res;
   res.reserve(infds);
   for (int i = 0; i < infds; i++) {
-    Channel *chan = (Channel *)(evts_[i].data.ptr);
+    ChannelPtr chan =
+        (static_cast<Channel*>(evts_[i].data.ptr))->shared_from_this();
     chan->setREvents(evts_[i].events);
     res.push_back(chan);
   }
   return res;
 }
 
-bool Epoll::updateChannel(Channel *chan) {
+bool Epoll::updateChannel(ChannelPtr chan) {
   epoll_event evt;
-  evt.data.ptr = chan;
+  evt.data.ptr = chan.get();
   evt.events = chan->events();
 
   if (chan->inEpoll()) {

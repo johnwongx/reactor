@@ -3,21 +3,25 @@
 */
 #pragma once
 #include <sys/epoll.h>
+
+#include <memory>
 #include <vector>
 
-class Channel;
+#include "Channel.h"
 
 class Epoll {
-public:
+ public:
   Epoll();
   ~Epoll();
 
-  std::vector<Channel *> loop(int timeout);
-  bool updateChannel(Channel *chan);
+  std::vector<ChannelPtr> loop(int timeout);
+  bool updateChannel(ChannelPtr chan);
 
-private:
+ private:
   int epollfd_;
 
   static const int MaxEventSize = 100;
   epoll_event evts_[MaxEventSize];
 };
+
+typedef std::shared_ptr<Epoll> EpollPtr;

@@ -2,14 +2,16 @@
 客户端连接channel管理
 */
 #pragma once
+#include <memory>
+
 #include "Buffer.h"
 #include "Channel.h"
 #include "EventLoop.h"
 #include "Socket.h"
 
-class Connector {
+class Connector : public std::enable_shared_from_this<Connector> {
  public:
-  Connector(EventLoop *loop, int clientfd);
+  Connector(EventLoopPtr loop, int clientfd);
   ~Connector();
 
   int fd() const { return socket_->fd(); }
@@ -23,7 +25,8 @@ class Connector {
     chan_->setErrorCallback(fn);
   }
 
-  void setMessageCallback(std::function<void(Connector *, const Buffer &)> fn) {
+  void setMessageCallback(
+      std::function<void(std::shared_ptr<Connector>, const Buffer &)> fn) {
     messageCallback_ = fn;
   }
 
@@ -38,13 +41,16 @@ class Connector {
   bool onSend();
 
  private:
-  Socket *socket_;
-  Channel *chan_;
+  SocketPtr socket_;
+  ChannelPtr chan_;
 
   Buffer inBuf_;
   Buffer outBuf_;
 
   std::function<void(int)> connCloseCallback_;
-  std::function<void(Connector *, const Buffer &)> messageCallback_;
+  std::function<void(std::shared_ptr<Connector>, const Buffer &)>
+      messageCallback_;
   std::function<void(int)> sendCompleteCallback_;
 };
+
+typedef std::shared_ptr<Connector> ConnectorPtr;

@@ -3,11 +3,11 @@
 #include <cassert>
 #include <functional>
 
-Acceptor::Acceptor(EventLoop *loop, const std::string &ip,
+Acceptor::Acceptor(EventLoopPtr loop, const std::string &ip,
                    int port) /*:loop_(loop)*/ {
   int listenfd = Socket::createNonBlockSocket();
 
-  socket_ = new Socket(listenfd);
+  socket_ = std::make_shared<Socket>(listenfd);
   socket_->setReuseAddr(true);
   socket_->setNoDelay(true);
 
@@ -16,16 +16,13 @@ Acceptor::Acceptor(EventLoop *loop, const std::string &ip,
 
   socket_->listen();
 
-  chan_ = new Channel(listenfd, loop, true);
+  chan_ = std::make_shared<Channel>(listenfd, loop, true);
   chan_->enableRead();
   chan_->setInEvtCallbackFunc(std::bind(&Acceptor::onNewConnection, this));
   loop->updateChannel(chan_);
 }
 
-Acceptor::~Acceptor() {
-  delete socket_;
-  delete chan_;
-}
+Acceptor::~Acceptor() {}
 
 bool Acceptor::onNewConnection() {
   InetAddress clientAddr;

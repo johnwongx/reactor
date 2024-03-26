@@ -2,22 +2,19 @@
 
 #include <iostream>
 
-EventLoop::EventLoop() : ep_(new Epoll()) {}
+EventLoop::EventLoop() : ep_(std::make_shared<Epoll>()) {}
 
-EventLoop::~EventLoop() {
-  delete ep_;
-  ep_ = nullptr;
-}
+EventLoop::~EventLoop() {}
 
-bool EventLoop::updateChannel(Channel *chan) {
+bool EventLoop::updateChannel(ChannelPtr chan) {
   return ep_->updateChannel(chan);
 }
 
 void EventLoop::run() {
   while (true) {
-    std::vector<Channel *> chanList = ep_->loop(5 * 1000);
+    std::vector<ChannelPtr> chanList = ep_->loop(5 * 1000);
     if (chanList.empty()) {
-      epollTimeoutCallback_(this);
+      epollTimeoutCallback_(shared_from_this());
       continue;
     }
 

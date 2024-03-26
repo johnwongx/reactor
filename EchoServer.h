@@ -9,9 +9,9 @@ class EchoServer {
 
   void Start() { tcpServ_.start(); }
 
-  void HandleMessage(Connector* conn, const Buffer& msg);
-  void HandleNewConnector(Connector* conn);
-  void HandleClose(Connector* conn);
+  void HandleMessage(ConnectorPtr conn, const Buffer& msg);
+  void HandleNewConnector(ConnectorPtr conn);
+  void HandleClose(ConnectorPtr conn);
 
  private:
   TcpServer tcpServ_;

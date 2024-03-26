@@ -3,6 +3,7 @@
 */
 #pragma once
 #include <map>
+#include <memory>
 #include <string>
 
 #include "Acceptor.h"
@@ -12,7 +13,7 @@
 
 class TcpServer {
  public:
-  TcpServer(const std::string &ip, int port);
+  TcpServer(const std::string &ip, int port, size_t threadNum = 3);
   ~TcpServer();
 
   void start();
@@ -22,31 +23,35 @@ class TcpServer {
   void connCloseCallback(int fd);
   void connErrorCallback(int fd);
 
-  void onConnMessage(Connector *conn, const Buffer &msg);
+  void onConnMessage(ConnectorPtr conn, const Buffer &msg);
 
   void onSendComplete(int fd);
 
-  void onEpollTimeout(EventLoop *loop);
+  void onEpollTimeout(EventLoopPtr loop);
 
   void setMessageCallback(
-      std::function<void(Connector *, const Buffer &msg)> fn) {
+      std::function<void(ConnectorPtr, const Buffer &msg)> fn) {
     messageCallback_ = fn;
   }
 
-  void setNewConnectorCallback(std::function<void(Connector *)> fn) {
+  void setNewConnectorCallback(std::function<void(ConnectorPtr)> fn) {
     newConnectorCallback_ = fn;
   }
 
-  void setConnectorCloseCallback(std::function<void(Connector *)> fn) {
+  void setConnectorCloseCallback(std::function<void(ConnectorPtr)> fn) {
     connectorCloseCallback_ = fn;
   }
 
  private:
-  EventLoop loop_;
-  Acceptor *acceptor_;
-  std::map<int /*fd*/, Connector *> connectors_;
+  EventLoopPtr mainLoop_;
+  std::vector<EventLoopPtr> subLoops_;
+  size_t threadNum_;
+  AcceptorPtr acceptor_;
+  std::map<int /*fd*/, ConnectorPtr> connectors_;
 
-  std::function<void(Connector *, const Buffer &msg)> messageCallback_;
-  std::function<void(Connector *)> newConnectorCallback_;
-  std::function<void(Connector *)> connectorCloseCallback_;
+  std::function<void(ConnectorPtr, const Buffer &msg)> messageCallback_;
+  std::function<void(ConnectorPtr)> newConnectorCallback_;
+  std::function<void(ConnectorPtr)> connectorCloseCallback_;
 };
+
+typedef std::shared_ptr<TcpServer> TcpServerPtr;
