@@ -5,7 +5,8 @@
 
 #include <iostream>
 
-ThreadPool::ThreadPool(size_t threadNum) : stop_(false) {
+ThreadPool::ThreadPool(size_t threadNum, const std::string& type)
+    : stop_(false), type_(type) {
   for (size_t i = 0; i < threadNum; i++) {
     threads_.emplace_back([&] {
       while (true) {
@@ -24,6 +25,8 @@ ThreadPool::ThreadPool(size_t threadNum) : stop_(false) {
           tasks_.pop();
         }
 
+        std::cout << type_ << " thread(" << syscall(SYS_gettid)
+                  << ") start exec task." << std::endl;
         task();
       }
     });
@@ -34,7 +37,7 @@ ThreadPool::~ThreadPool() {
   stop_ = true;
   condition_.notify_all();
 
-  for (auto &&thread : threads_) {
+  for (auto&& thread : threads_) {
     thread.join();
   }
 }

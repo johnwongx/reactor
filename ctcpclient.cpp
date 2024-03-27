@@ -115,7 +115,6 @@ int main(int argc, char *argv[]) {
     return -1;
   }
 
-  sleep(10);
   char buffer[1024];
   size_t kMsgCount = 2;
   const uint32_t kHeaderLen = sizeof(uint32_t);
@@ -130,6 +129,7 @@ int main(int argc, char *argv[]) {
       perror("send()");
       break;
     }
+    sleep(10);
   }
 
   int readCnt = 0;

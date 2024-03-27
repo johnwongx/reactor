@@ -4,7 +4,8 @@
 
 class EchoServer {
  public:
-  EchoServer(const std::string& ip, int port, size_t threadNum = 3);
+  EchoServer(const std::string& ip, int port, size_t subThreadNum = 3,
+             size_t workThreadNum = 5);
   ~EchoServer();
 
   void Start() { tcpServ_.start(); }
@@ -13,6 +14,9 @@ class EchoServer {
   void HandleNewConnector(ConnectorPtr conn);
   void HandleClose(ConnectorPtr conn);
 
+  void OnMessage(ConnectorPtr conn, const Buffer& msg);
+
  private:
   TcpServer tcpServ_;
+  ThreadPoolPtr workThreadPool_;
 };

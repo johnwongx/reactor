@@ -13,7 +13,7 @@ TcpServer::TcpServer(const std::string &ip, int port, size_t threadNum)
   mainLoop_->setEpollTimeoutCallback(
       std::bind(&TcpServer::onEpollTimeout, this, std::placeholders::_1));
 
-  threadPool_ = std::make_shared<ThreadPool>(threadNum_);
+  threadPool_ = std::make_shared<ThreadPool>(threadNum_, "Eventloop");
   for (size_t i = 0; i < threadNum_; i++) {
     EventLoopPtr loop = std::make_shared<EventLoop>();
     loop->setEpollTimeoutCallback(

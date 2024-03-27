@@ -2,8 +2,10 @@
 
 #include <string.h>
 
-EchoServer::EchoServer(const std::string& ip, int port, size_t threadNum)
-    : tcpServ_(ip, port, threadNum) {
+EchoServer::EchoServer(const std::string& ip, int port, size_t subThreadNum,
+                       size_t workThreadNum)
+    : tcpServ_(ip, port, subThreadNum),
+      workThreadPool_(std::make_shared<ThreadPool>(workThreadNum, "WORK")) {
   tcpServ_.setNewConnectorCallback(
       std::bind(&EchoServer::HandleNewConnector, this, std::placeholders::_1));
   tcpServ_.setConnectorCloseCallback(
@@ -16,6 +18,10 @@ EchoServer::EchoServer(const std::string& ip, int port, size_t threadNum)
 EchoServer::~EchoServer() {}
 
 void EchoServer::HandleMessage(ConnectorPtr conn, const Buffer& msg) {
+  workThreadPool_->AddTask(std::bind(&EchoServer::OnMessage, this, conn, msg));
+}
+
+void EchoServer::OnMessage(ConnectorPtr conn, const Buffer& msg) {
   std::string sendMsg("recv:");
   sendMsg.append(msg.data(), msg.size());
   Buffer sendBuf;

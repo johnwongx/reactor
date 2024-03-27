@@ -11,7 +11,7 @@
 
 class ThreadPool {
  public:
-  ThreadPool(size_t threadNum);
+  ThreadPool(size_t threadNum, const std::string& type);
   ~ThreadPool();
 
   void AddTask(std::function<void()> fn);
@@ -22,6 +22,8 @@ class ThreadPool {
   std::condition_variable condition_;
   std::queue<std::function<void()>> tasks_;
   std::atomic_bool stop_;
+
+  std::string type_;
 };
 
 typedef std::shared_ptr<ThreadPool> ThreadPoolPtr;
