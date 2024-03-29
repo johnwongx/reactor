@@ -9,7 +9,7 @@
 #include <functional>
 #include <iostream>
 
-Connector::Connector(EventLoopPtr loop, int clientfd) {
+Connector::Connector(EventLoopPtr loop, int clientfd) : disconnected_(false) {
   socket_ = std::make_shared<Socket>(clientfd);
 
   chan_ = std::make_shared<Channel>(clientfd, loop, false);
@@ -17,10 +17,14 @@ Connector::Connector(EventLoopPtr loop, int clientfd) {
   chan_->enableET();
   chan_->setInEvtCallbackFunc(std::bind(&Connector::onMessage, this));
   chan_->setOutEvtCallbackFunc(std::bind(&Connector::onSend, this));
+  chan_->setCloseCallback(
+      std::bind(&Connector::OnClose, this, std::placeholders::_1));
+  chan_->setErrorCallback(
+      std::bind(&Connector::OnError, this, std::placeholders::_1));
   loop->updateChannel(chan_);
 }
 
-Connector::~Connector() {}
+Connector::~Connector() { std::cout << "Connector::~Connector()" << std::endl; }
 
 bool Connector::onMessage() {
   // printf("Connector::onMessage() thread(%ld).\n", syscall(SYS_gettid));
@@ -63,6 +67,10 @@ bool Connector::onMessage() {
 }
 
 void Connector::send(const Buffer& info) {
+  if (disconnected_) {
+    std::cout << "连接已断开，发送直接返回" << std::endl;
+    return;
+  }
   // 将数据加入到输出缓冲区，并监听写事件
   outBuf_.append(info.data(), info.size());
   chan_->enableWrite();
@@ -70,6 +78,7 @@ void Connector::send(const Buffer& info) {
 }
 
 bool Connector::onSend() {
+  if (disconnected_) return false;
   // 发送缓冲区中的事件
   if (outBuf_.size() > 0) {
     int sendLen = ::send(fd(), outBuf_.data(), outBuf_.size(), 0);

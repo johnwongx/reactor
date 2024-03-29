@@ -14,8 +14,9 @@ class Epoll {
   Epoll();
   ~Epoll();
 
-  std::vector<ChannelPtr> loop(int timeout);
-  bool updateChannel(ChannelPtr chan);
+  std::vector<ChannelPtr> Loop(int timeout);
+  bool UpdateChannel(ChannelPtr chan);
+  void RemoveChannel(ChannelPtr chan);
 
  private:
   int epollfd_;

@@ -22,7 +22,7 @@ bool Channel::handleEvent() {
   } else {
     // 其他事件都视为错误
     assert(connErrorCallback_ != nullptr);
-    connCloseCallback_(fd_);
+    connErrorCallback_(fd_);
     return false;
   }
 }
@@ -30,4 +30,9 @@ bool Channel::handleEvent() {
 void Channel::flushEvents() {
   if (!loop_.lock()) return;
   loop_.lock()->updateChannel(shared_from_this());
+}
+
+void Channel::Remove() {
+  if (!loop_.lock()) return;
+  loop_.lock()->RemoveChannel(shared_from_this());
 }

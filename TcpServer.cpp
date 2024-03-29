@@ -50,15 +50,15 @@ void TcpServer::createNewConnector(int clientFd) {
 }
 
 void TcpServer::connCloseCallback(int fd) {
+  printf("TcpServer::connCloseCallback(fd=%d).\n", fd);
+
   assert(connectors_.end() != connectors_.find(fd));
-
   if (connectorCloseCallback_) connectorCloseCallback_(connectors_[fd]);
-
   connectors_.erase(fd);
 }
 
 void TcpServer::connErrorCallback(int fd) {
-  printf("client(fd=%d) error, close connection.\n", fd);
+  printf("TcpServer::connErrorCallback(fd=%d).\n", fd);
 
   assert(connectors_.end() != connectors_.find(fd));
   connectors_.erase(fd);

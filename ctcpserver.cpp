@@ -1,17 +1,22 @@
+#include <functional>
 #include <iostream>
 #include <vector>
 
 #include "EchoServer.h"
 #include "utils/ThreadPool.h"
 
-class MyClass : public std::enable_shared_from_this<MyClass> {};
+class MyClass /*: public std::enable_shared_from_this<MyClass>*/ {
+ public:
+  MyClass() { std::cout << "Construction func" << std::endl; }
+  MyClass(const MyClass& rhs) { std::cout << "Copy construct" << std::endl; }
+  ~MyClass() {}
+};
+
+void foo(const MyClass& data) {}
 
 void test() {
-  std::shared_ptr<MyClass> data = std::make_shared<MyClass>();
-  {
-    void* p = data.get();
-    std::shared_ptr<MyClass> tmp = ((MyClass*)p)->shared_from_this();
-  }
+  MyClass data;
+  auto fn = std::bind(&foo, data);
 }
 
 int main(int argc, char* argv[]) {

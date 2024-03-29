@@ -5,6 +5,7 @@
 #include <string.h>
 #include <unistd.h>
 
+#include <cassert>
 #include <iostream>
 
 #include "Channel.h"
@@ -19,7 +20,7 @@ Epoll::Epoll() {
 
 Epoll::~Epoll() { close(epollfd_); }
 
-std::vector<ChannelPtr> Epoll::loop(int timeout) {
+std::vector<ChannelPtr> Epoll::Loop(int timeout) {
   memset(evts_, 0, sizeof(evts_));
 
   int infds = epoll_wait(epollfd_, evts_, MaxEventSize, timeout);
@@ -42,7 +43,7 @@ std::vector<ChannelPtr> Epoll::loop(int timeout) {
   return res;
 }
 
-bool Epoll::updateChannel(ChannelPtr chan) {
+bool Epoll::UpdateChannel(ChannelPtr chan) {
   epoll_event evt;
   evt.data.ptr = chan.get();
   evt.events = chan->events();
@@ -62,5 +63,15 @@ bool Epoll::updateChannel(ChannelPtr chan) {
     }
     chan->setInEpoll(true);
     return true;
+  }
+}
+
+void Epoll::RemoveChannel(ChannelPtr chan) {
+  assert(chan->inEpoll());
+  std::cout << "Epoll::RemoveChannel()" << std::endl;
+  int iret = epoll_ctl(epollfd_, EPOLL_CTL_DEL, chan->fd(), nullptr);
+  if (iret != 0) {
+    perror("remove channel failed!");
+    return;
   }
 }

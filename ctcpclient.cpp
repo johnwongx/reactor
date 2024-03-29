@@ -129,8 +129,9 @@ int main(int argc, char *argv[]) {
       perror("send()");
       break;
     }
-    sleep(10);
   }
+  sleep(1);
+  return 0;
 
   int readCnt = 0;
   Buffer inBuf;

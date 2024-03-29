@@ -1,6 +1,8 @@
 #include "EchoServer.h"
 
 #include <string.h>
+#include <sys/syscall.h>
+#include <unistd.h>
 
 EchoServer::EchoServer(const std::string& ip, int port, size_t subThreadNum,
                        size_t workThreadNum)
@@ -18,16 +20,19 @@ EchoServer::EchoServer(const std::string& ip, int port, size_t subThreadNum,
 EchoServer::~EchoServer() {}
 
 void EchoServer::HandleMessage(ConnectorPtr conn, const Buffer& msg) {
+  // 此处无需担心msg引用对象的生命周期，bind函数会触发msg的拷贝构造函数
   workThreadPool_->AddTask(std::bind(&EchoServer::OnMessage, this, conn, msg));
 }
 
 void EchoServer::OnMessage(ConnectorPtr conn, const Buffer& msg) {
+  sleep(2);
   std::string sendMsg("recv:");
   sendMsg.append(msg.data(), msg.size());
   Buffer sendBuf;
   sendBuf.appendWithHeader(sendMsg.data(), sendMsg.size());
 
-  printf("recv(clientfd=%d):%s\n", conn->fd(), msg.data());
+  printf("recv(thread:%ld clientfd=%d):%s\n", syscall(SYS_gettid), conn->fd(),
+         msg.data());
   conn->send(sendBuf);
 }
 
@@ -36,5 +41,5 @@ void EchoServer::HandleNewConnector(ConnectorPtr conn) {
 }
 
 void EchoServer::HandleClose(ConnectorPtr conn) {
-  printf("connector(%d) disconnec.\n", conn->fd());
+  printf("EchoServer::HandleClose(conn:%d).\n", conn->fd());
 }

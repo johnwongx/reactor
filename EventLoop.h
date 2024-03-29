@@ -15,6 +15,7 @@ class EventLoop : public std::enable_shared_from_this<EventLoop> {
   void run();
 
   bool updateChannel(ChannelPtr chan);
+  void RemoveChannel(ChannelPtr chan);
 
   void setEpollTimeoutCallback(
       std::function<void(std::shared_ptr<EventLoop>)> fn) {

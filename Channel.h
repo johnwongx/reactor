@@ -52,8 +52,10 @@ class Channel : public std::enable_shared_from_this<Channel> {
   }
 
   void setErrorCallback(std::function<void(int)> fn) {
-    connCloseCallback_ = fn;
+    connErrorCallback_ = fn;
   }
+
+  void Remove();
 
  private:
   void enable(uint32_t evt) { events_ |= evt; }
