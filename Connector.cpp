@@ -57,8 +57,7 @@ bool Connector::onMessage() {
       }
     } else if (readLen == 0) {
       // 客户端断开连接
-      assert(connCloseCallback_ != nullptr);
-      connCloseCallback_(fd());
+      OnClose(fd());
       return true;
     }
   }

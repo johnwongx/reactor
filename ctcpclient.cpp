@@ -130,8 +130,6 @@ int main(int argc, char *argv[]) {
       break;
     }
   }
-  sleep(1);
-  return 0;
 
   int readCnt = 0;
   Buffer inBuf;

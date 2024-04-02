@@ -25,7 +25,6 @@ void EchoServer::HandleMessage(ConnectorPtr conn, const Buffer& msg) {
 }
 
 void EchoServer::OnMessage(ConnectorPtr conn, const Buffer& msg) {
-  sleep(2);
   std::string sendMsg("recv:");
   sendMsg.append(msg.data(), msg.size());
   Buffer sendBuf;
