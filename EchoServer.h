@@ -10,11 +10,12 @@ class EchoServer {
 
   void Start() { tcpServ_.start(); }
 
-  void HandleMessage(ConnectorPtr conn, const Buffer& msg);
-  void HandleNewConnector(ConnectorPtr conn);
-  void HandleClose(ConnectorPtr conn);
+ private:
+  void HandleMessage(std::weak_ptr<Connector> conn, const Buffer& msg);
+  void OnMessage(std::weak_ptr<Connector> conn, const Buffer& msg);
 
-  void OnMessage(ConnectorPtr conn, const Buffer& msg);
+  void HandleNewConnector(Connector& conn);
+  void HandleClose(Connector& conn);
 
  private:
   TcpServer tcpServ_;

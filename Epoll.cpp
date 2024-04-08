@@ -20,7 +20,7 @@ Epoll::Epoll() {
 
 Epoll::~Epoll() { close(epollfd_); }
 
-std::vector<ChannelPtr> Epoll::Loop(int timeout) {
+std::vector<Channel*> Epoll::Loop(int timeout) {
   memset(evts_, 0, sizeof(evts_));
 
   int infds = epoll_wait(epollfd_, evts_, MaxEventSize, timeout);
@@ -32,44 +32,43 @@ std::vector<ChannelPtr> Epoll::Loop(int timeout) {
     return {};
   }
 
-  std::vector<ChannelPtr> res;
+  std::vector<Channel*> res;
   res.reserve(infds);
   for (int i = 0; i < infds; i++) {
-    ChannelPtr chan =
-        (static_cast<Channel*>(evts_[i].data.ptr))->shared_from_this();
+    Channel* chan = static_cast<Channel*>(evts_[i].data.ptr);
     chan->setREvents(evts_[i].events);
     res.push_back(chan);
   }
   return res;
 }
 
-bool Epoll::UpdateChannel(ChannelPtr chan) {
+bool Epoll::UpdateChannel(Channel& chan) {
   epoll_event evt;
-  evt.data.ptr = chan.get();
-  evt.events = chan->events();
+  evt.data.ptr = &chan;
+  evt.events = chan.events();
 
-  if (chan->inEpoll()) {
-    int iret = epoll_ctl(epollfd_, EPOLL_CTL_MOD, chan->fd(), &evt);
+  if (chan.inEpoll()) {
+    int iret = epoll_ctl(epollfd_, EPOLL_CTL_MOD, chan.fd(), &evt);
     if (iret != 0) {
       perror("modify event to epoll failed!");
       return false;
     }
     return true;
   } else {
-    int iret = epoll_ctl(epollfd_, EPOLL_CTL_ADD, chan->fd(), &evt);
+    int iret = epoll_ctl(epollfd_, EPOLL_CTL_ADD, chan.fd(), &evt);
     if (iret != 0) {
       perror("add event to epoll failed!");
       return false;
     }
-    chan->setInEpoll(true);
+    chan.setInEpoll(true);
     return true;
   }
 }
 
-void Epoll::RemoveChannel(ChannelPtr chan) {
-  assert(chan->inEpoll());
+void Epoll::RemoveChannel(Channel& chan) {
+  assert(chan.inEpoll());
   std::cout << "Epoll::RemoveChannel()" << std::endl;
-  int iret = epoll_ctl(epollfd_, EPOLL_CTL_DEL, chan->fd(), nullptr);
+  int iret = epoll_ctl(epollfd_, EPOLL_CTL_DEL, chan.fd(), nullptr);
   if (iret != 0) {
     perror("remove channel failed!");
     return;

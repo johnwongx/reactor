@@ -27,12 +27,5 @@ bool Channel::handleEvent() {
   }
 }
 
-void Channel::flushEvents() {
-  if (!loop_.lock()) return;
-  loop_.lock()->updateChannel(shared_from_this());
-}
-
-void Channel::Remove() {
-  if (!loop_.lock()) return;
-  loop_.lock()->RemoveChannel(shared_from_this());
-}
+void Channel::flushEvents() { loop_.updateChannel(*this); }
+void Channel::Remove() { loop_.RemoveChannel(*this); }

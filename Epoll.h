@@ -7,16 +7,16 @@
 #include <memory>
 #include <vector>
 
-#include "Channel.h"
+class Channel;
 
 class Epoll {
  public:
   Epoll();
   ~Epoll();
 
-  std::vector<ChannelPtr> Loop(int timeout);
-  bool UpdateChannel(ChannelPtr chan);
-  void RemoveChannel(ChannelPtr chan);
+  std::vector<Channel*> Loop(int timeout);
+  bool UpdateChannel(Channel& chan);
+  void RemoveChannel(Channel& chan);
 
  private:
   int epollfd_;
@@ -24,5 +24,3 @@ class Epoll {
   static const int MaxEventSize = 100;
   epoll_event evts_[MaxEventSize];
 };
-
-typedef std::shared_ptr<Epoll> EpollPtr;

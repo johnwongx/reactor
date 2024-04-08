@@ -12,7 +12,7 @@
 
 class Connector : public std::enable_shared_from_this<Connector> {
  public:
-  Connector(EventLoopPtr loop, int clientfd);
+  Connector(EventLoop &loop, int clientfd);
   ~Connector();
 
   int fd() const { return socket_->fd(); }
@@ -27,14 +27,14 @@ class Connector : public std::enable_shared_from_this<Connector> {
 
   void OnClose(int fd) {
     disconnected_ = true;
-    if (connCloseCallback_) connCloseCallback_(fd);
     chan_->Remove();
+    if (connCloseCallback_) connCloseCallback_(fd);
   }
 
   void OnError(int fd) {
     disconnected_ = true;
-    if (connErrorCallback_) connErrorCallback_(fd);
     chan_->Remove();
+    if (connErrorCallback_) connErrorCallback_(fd);
   }
 
   void setMessageCallback(
@@ -53,8 +53,8 @@ class Connector : public std::enable_shared_from_this<Connector> {
   bool onSend();
 
  private:
-  SocketPtr socket_;
-  ChannelPtr chan_;
+  std::unique_ptr<Socket> socket_;
+  std::unique_ptr<Channel> chan_;
   std::atomic_bool disconnected_;
 
   Buffer inBuf_;

@@ -16,7 +16,7 @@ typedef std::function<bool()> ProcEvtFunc;
 // 记录与处理事件
 class Channel : public std::enable_shared_from_this<Channel> {
  public:
-  Channel(int fd, std::shared_ptr<EventLoop> loop, bool isListen)
+  Channel(int fd, EventLoop& loop, bool isListen)
       : fd_(fd), loop_(loop), inEpoll_(false) {}
   ~Channel() {}
 
@@ -52,7 +52,7 @@ class Channel : public std::enable_shared_from_this<Channel> {
   }
 
   void setErrorCallback(std::function<void(int)> fn) {
-    connErrorCallback_ = fn;
+    connCloseCallback_ = fn;
   }
 
   void Remove();
@@ -64,7 +64,7 @@ class Channel : public std::enable_shared_from_this<Channel> {
  private:
   const int fd_;
 
-  std::weak_ptr<EventLoop> loop_;
+  EventLoop& loop_;
   bool inEpoll_;
 
   uint32_t events_;   // 监听的事件
@@ -75,4 +75,5 @@ class Channel : public std::enable_shared_from_this<Channel> {
   std::function<void(int)> connCloseCallback_;
   std::function<void(int)> connErrorCallback_;
 };
+typedef std::shared_ptr<Channel> ChannelPtr;
 typedef std::shared_ptr<Channel> ChannelPtr;

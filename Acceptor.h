@@ -11,7 +11,7 @@ listen channel封装
 
 class Acceptor {
  public:
-  Acceptor(EventLoopPtr loop, const std::string& ip, int port);
+  Acceptor(EventLoop& loop, const std::string& ip, int port);
   ~Acceptor();
 
   // 有新的客户端连接
@@ -22,8 +22,8 @@ class Acceptor {
   }
 
  private:
-  SocketPtr socket_;
-  ChannelPtr chan_;
+  std::unique_ptr<Socket> socket_;
+  std::unique_ptr<Channel> chan_;
   std::function<void(int)> connectorCallback_;
 };
 

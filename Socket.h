@@ -35,5 +35,3 @@ class Socket {
  private:
   const int fd_;
 };
-
-typedef std::shared_ptr<Socket> SocketPtr;

@@ -9,10 +9,9 @@
 #include <functional>
 #include <iostream>
 
-Connector::Connector(EventLoopPtr loop, int clientfd) : disconnected_(false) {
-  socket_ = std::make_shared<Socket>(clientfd);
-
-  chan_ = std::make_shared<Channel>(clientfd, loop, false);
+Connector::Connector(EventLoop& loop, int clientfd)
+    : disconnected_(false), socket_(std::make_unique<Socket>(clientfd)) {
+  chan_ = std::make_unique<Channel>(clientfd, loop, false);
   chan_->enableRead();
   chan_->enableET();
   chan_->setInEvtCallbackFunc(std::bind(&Connector::onMessage, this));
@@ -21,7 +20,7 @@ Connector::Connector(EventLoopPtr loop, int clientfd) : disconnected_(false) {
       std::bind(&Connector::OnClose, this, std::placeholders::_1));
   chan_->setErrorCallback(
       std::bind(&Connector::OnError, this, std::placeholders::_1));
-  loop->updateChannel(chan_);
+  loop.updateChannel(*chan_);
 }
 
 Connector::~Connector() { std::cout << "Connector::~Connector()" << std::endl; }

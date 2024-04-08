@@ -5,21 +5,17 @@
 
 #include <iostream>
 
-EventLoop::EventLoop() : ep_(std::make_shared<Epoll>()) {}
+EventLoop::EventLoop() : ep_(std::make_unique<Epoll>()) {}
 
 EventLoop::~EventLoop() {}
-
-bool EventLoop::updateChannel(ChannelPtr chan) {
-  return ep_->UpdateChannel(chan);
-}
 
 void EventLoop::run() {
   // printf("EventLoop::run() at thread(%ld).\n", syscall(SYS_gettid));
 
   while (true) {
-    std::vector<ChannelPtr> chanList = ep_->Loop(5 * 1000);
+    std::vector<Channel *> chanList = ep_->Loop(5 * 1000);
     if (chanList.empty()) {
-      epollTimeoutCallback_(shared_from_this());
+      epollTimeoutCallback_(*this);
       continue;
     }
 
@@ -31,5 +27,3 @@ void EventLoop::run() {
     }
   }
 }
-
-void EventLoop::RemoveChannel(ChannelPtr chan) { ep_->RemoveChannel(chan); }
