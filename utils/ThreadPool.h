@@ -16,6 +16,9 @@ class ThreadPool {
 
   void AddTask(std::function<void()> fn);
 
+  size_t Size() const { return threads_.size(); }
+  bool Empty() const { return threads_.empty(); }
+
  private:
   std::vector<std::thread> threads_;
   std::mutex mtx_;

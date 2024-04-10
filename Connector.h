@@ -46,13 +46,17 @@ class Connector : public std::enable_shared_from_this<Connector> {
     sendCompleteCallback_ = fn;
   }
 
-  void send(const Buffer &info);
+  // 如果和事件循环在同一个类中将直接发送，否则异步发送
+  void Send(const Buffer &info);
 
  private:
   bool onMessage();
   bool onSend();
+  // 直接发送
+  void SendSync(const Buffer &msg);
 
  private:
+  EventLoop &loop_;
   std::unique_ptr<Socket> socket_;
   std::unique_ptr<Channel> chan_;
   std::atomic_bool disconnected_;

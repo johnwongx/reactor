@@ -21,7 +21,12 @@ EchoServer::~EchoServer() {}
 
 void EchoServer::HandleMessage(std::weak_ptr<Connector> conn,
                                const Buffer& msg) {
-  workThreadPool_->AddTask(std::bind(&EchoServer::OnMessage, this, conn, msg));
+  if (workThreadPool_->Empty()) {
+    OnMessage(conn, msg);
+  } else {
+    workThreadPool_->AddTask(
+        std::bind(&EchoServer::OnMessage, this, conn, msg));
+  }
 }
 
 void EchoServer::OnMessage(std::weak_ptr<Connector> connWeak,
@@ -37,7 +42,7 @@ void EchoServer::OnMessage(std::weak_ptr<Connector> connWeak,
 
   printf("recv(thread:%ld clientfd=%d):%s\n", syscall(SYS_gettid), conn->fd(),
          msg.data());
-  conn->send(sendBuf);
+  conn->Send(sendBuf);
 }
 
 void EchoServer::HandleNewConnector(Connector& conn) {

@@ -24,7 +24,7 @@ int main(int argc, char* argv[]) {
   // return 0;
 
   const unsigned short port = 5005;
-  EchoServer srv("127.0.0.1", port);
+  EchoServer srv("127.0.0.1", port, 3);
   srv.Start();
 
   return 0;

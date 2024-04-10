@@ -10,8 +10,10 @@
 #include <iostream>
 
 Connector::Connector(EventLoop& loop, int clientfd)
-    : disconnected_(false), socket_(std::make_unique<Socket>(clientfd)) {
-  chan_ = std::make_unique<Channel>(clientfd, loop, false);
+    : loop_(loop),
+      disconnected_(false),
+      socket_(std::make_unique<Socket>(clientfd)) {
+  chan_ = std::make_unique<Channel>(clientfd, loop);
   chan_->enableRead();
   chan_->enableET();
   chan_->setInEvtCallbackFunc(std::bind(&Connector::onMessage, this));
@@ -64,19 +66,31 @@ bool Connector::onMessage() {
   return true;
 }
 
-void Connector::send(const Buffer& info) {
+void Connector::Send(const Buffer& msg) {
   if (disconnected_) {
-    std::cout << "连接已断开，发送直接返回" << std::endl;
+    return;
+  }
+  if (syscall(SYS_gettid) == loop_.GetThreadId()) {
+    SendSync(msg);
+  } else {
+    // 加入事件循环的任务列表中
+    loop_.PushTask(std::bind(&Connector::SendSync, this, msg));
+  }
+}
+
+void Connector::SendSync(const Buffer& msg) {
+  if (disconnected_) {
     return;
   }
   // 将数据加入到输出缓冲区，并监听写事件
-  outBuf_.append(info.data(), info.size());
+  outBuf_.append(msg.data(), msg.size());
   chan_->enableWrite();
   chan_->flushEvents();
 }
 
 bool Connector::onSend() {
   if (disconnected_) return false;
+
   // 发送缓冲区中的事件
   if (outBuf_.size() > 0) {
     int sendLen = ::send(fd(), outBuf_.data(), outBuf_.size(), 0);

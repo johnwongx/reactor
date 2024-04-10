@@ -3,8 +3,7 @@
 #include <cassert>
 #include <functional>
 
-Acceptor::Acceptor(EventLoop& loop, const std::string& ip,
-                   int port) /*:loop_(loop)*/ {
+Acceptor::Acceptor(EventLoop& loop, const std::string& ip, int port) {
   int listenfd = Socket::createNonBlockSocket();
 
   socket_ = std::make_unique<Socket>(listenfd);
@@ -16,7 +15,7 @@ Acceptor::Acceptor(EventLoop& loop, const std::string& ip,
 
   socket_->listen();
 
-  chan_ = std::make_unique<Channel>(listenfd, loop, true);
+  chan_ = std::make_unique<Channel>(listenfd, loop);
   chan_->enableRead();
   chan_->setInEvtCallbackFunc(std::bind(&Acceptor::onNewConnection, this));
   loop.updateChannel(*chan_);

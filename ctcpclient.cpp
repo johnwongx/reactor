@@ -115,10 +115,8 @@ int main(int argc, char *argv[]) {
     return -1;
   }
 
-  sleep(10);
-
   char buffer[1024];
-  size_t kMsgCount = 2;
+  size_t kMsgCount = 100;
   const uint32_t kHeaderLen = sizeof(uint32_t);
   for (int i = 0; i < kMsgCount; i++) {
     uint32_t len = 0;

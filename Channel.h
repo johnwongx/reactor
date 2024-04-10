@@ -16,8 +16,7 @@ typedef std::function<bool()> ProcEvtFunc;
 // 记录与处理事件
 class Channel : public std::enable_shared_from_this<Channel> {
  public:
-  Channel(int fd, EventLoop& loop, bool isListen)
-      : fd_(fd), loop_(loop), inEpoll_(false) {}
+  Channel(int fd, EventLoop& loop) : fd_(fd), loop_(loop), inEpoll_(false) {}
   ~Channel() {}
 
   int fd() const { return fd_; }
