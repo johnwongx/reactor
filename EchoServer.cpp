@@ -7,17 +7,25 @@
 EchoServer::EchoServer(const std::string& ip, int port, size_t subThreadNum,
                        size_t workThreadNum)
     : tcpServ_(ip, port, subThreadNum),
-      workThreadPool_(std::make_shared<ThreadPool>(workThreadNum, "WORK")) {
-  tcpServ_.setNewConnectorCallback(
+      workThreadPool_(new ThreadPool(workThreadNum, "WORK")) {
+  tcpServ_.SetNewConnectorCallback(
       std::bind(&EchoServer::HandleNewConnector, this, std::placeholders::_1));
-  tcpServ_.setConnectorCloseCallback(
+  tcpServ_.SetConnectorCloseCallback(
       std::bind(&EchoServer::HandleClose, this, std::placeholders::_1));
-  tcpServ_.setMessageCallback(std::bind(&EchoServer::HandleMessage, this,
+  tcpServ_.SetMessageCallback(std::bind(&EchoServer::HandleMessage, this,
                                         std::placeholders::_1,
                                         std::placeholders::_2));
 }
 
-EchoServer::~EchoServer() {}
+EchoServer::~EchoServer() { Stop(); }
+
+void EchoServer::Stop() {
+  workThreadPool_->Stop();
+  std::cout << "work thread exit!" << std::endl;
+
+  tcpServ_.Stop();
+  std::cout << "tcp server exit!" << std::endl;
+}
 
 void EchoServer::HandleMessage(std::weak_ptr<Connector> conn,
                                const Buffer& msg) {

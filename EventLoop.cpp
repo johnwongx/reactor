@@ -21,6 +21,7 @@ void ResetTimer(int tfd, int sec) {
 EventLoop::EventLoop(uint32_t timeoutCheckInter)
     : ep_(std::make_unique<Epoll>()),
       threadId_(-1),
+      stop_(false),
       weakupChan_(new Channel(eventfd(0, EFD_NONBLOCK), *this)),
       timeoutCheckInter_(timeoutCheckInter) {
   weakupChan_->setInEvtCallbackFunc(std::bind(&EventLoop::HandleTasks, this));
@@ -30,7 +31,7 @@ EventLoop::EventLoop(uint32_t timeoutCheckInter)
 
   if (timeoutCheckInter_ != -1) {
     int tfd = timerfd_create(CLOCK_MONOTONIC, TFD_CLOEXEC | TFD_NONBLOCK);
-    timerChan_.reset(new Channel(tfd, *this));
+    timerChan_ = std::make_unique<Channel>(tfd, *this);
     timerChan_->setInEvtCallbackFunc(std::bind(&EventLoop::HandleTimer, this));
     timerChan_->enableRead();
     timerChan_->enableET();
@@ -38,14 +39,13 @@ EventLoop::EventLoop(uint32_t timeoutCheckInter)
     ResetTimer(tfd, timeoutCheckInter_);
   }
 }
+EventLoop::~EventLoop() { Stop(); }
 
-EventLoop::~EventLoop() {}
-
-void EventLoop::run() {
+void EventLoop::Run() {
   threadId_ = syscall(SYS_gettid);
   printf("EventLoop::run() at thread(%ld).\n", threadId_);
 
-  while (true) {
+  while (!stop_) {
     std::vector<Channel *> chanList = ep_->Loop(5 * 1000);
     if (chanList.empty()) {
       epollTimeoutCallback_(*this);
@@ -59,6 +59,11 @@ void EventLoop::run() {
       }
     }
   }
+}
+void EventLoop::Stop() {
+  if (stop_) return;
+  stop_ = true;
+  WeakupTaskProcess();
 }
 
 void EventLoop::WeakupTaskProcess() {

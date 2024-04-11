@@ -26,5 +26,3 @@ class Acceptor {
   std::unique_ptr<Channel> chan_;
   std::function<void(int)> connectorCallback_;
 };
-
-typedef std::shared_ptr<Acceptor> AcceptorPtr;

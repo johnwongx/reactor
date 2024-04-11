@@ -33,7 +33,11 @@ ThreadPool::ThreadPool(size_t threadNum, const std::string& type)
   }
 }
 
-ThreadPool::~ThreadPool() {
+ThreadPool::~ThreadPool() { Stop(); }
+
+void ThreadPool::Stop() {
+  if (stop_) return;
+
   stop_ = true;
   condition_.notify_all();
 

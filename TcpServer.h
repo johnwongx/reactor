@@ -17,38 +17,40 @@ class TcpServer {
   TcpServer(const std::string &ip, int port, size_t threadNum);
   ~TcpServer();
 
-  void start();
+  void Start();
+  void Stop();
 
-  void createNewConnector(int clientFd);
+  void CreateNewConnector(int clientFd);
 
-  void connCloseCallback(int fd);
-  void connErrorCallback(int fd);
+  void ConnCloseCallback(int fd);
+  void ConnErrorCallback(int fd);
 
-  void onConnMessage(ConnectorPtr conn, const Buffer &msg);
+  void OnConnMessage(ConnectorPtr conn, const Buffer &msg);
 
-  void onSendComplete(int fd) {}
+  void OnSendComplete(int fd) {}
 
-  void onEpollTimeout(EventLoop &loop) {}
+  void OnEpollTimeout(EventLoop &loop) {}
 
-  void setMessageCallback(
+  void SetMessageCallback(
       std::function<void(std::weak_ptr<Connector>, const Buffer &msg)> fn) {
     messageCallback_ = fn;
   }
 
-  void setNewConnectorCallback(std::function<void(Connector &)> fn) {
+  void SetNewConnectorCallback(std::function<void(Connector &)> fn) {
     newConnectorCallback_ = fn;
   }
 
-  void setConnectorCloseCallback(std::function<void(Connector &)> fn) {
+  void SetConnectorCloseCallback(std::function<void(Connector &)> fn) {
     connectorCloseCallback_ = fn;
   }
 
  private:
   std::unique_ptr<EventLoop> mainLoop_;
-  std::vector<std::unique_ptr<EventLoop>> subLoops_;
-  ThreadPoolPtr threadPool_;
+  std::unique_ptr<Acceptor> acceptor_;
+
   size_t threadNum_;
-  AcceptorPtr acceptor_;
+  std::vector<std::unique_ptr<EventLoop>> subLoops_;
+  std::unique_ptr<ThreadPool> threadPool_;
   // 本类管理connector的生命周期，为方便外部在多线程环境下使用时方便判断connector是否有效
   // 使用shared_ptr, 而非unique_ptr.
   // 向外传出时只传出weak_ptr或者Connector&, 以此保证对于Connector的生命控制

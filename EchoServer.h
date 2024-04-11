@@ -8,7 +8,8 @@ class EchoServer {
              size_t workThreadNum = 5);
   ~EchoServer();
 
-  void Start() { tcpServ_.start(); }
+  void Start() { tcpServ_.Start(); }
+  void Stop();
 
  private:
   void HandleMessage(std::weak_ptr<Connector> conn, const Buffer& msg);
@@ -19,5 +20,5 @@ class EchoServer {
 
  private:
   TcpServer tcpServ_;
-  ThreadPoolPtr workThreadPool_;
+  std::unique_ptr<ThreadPool> workThreadPool_;
 };

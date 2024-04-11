@@ -14,6 +14,8 @@ class ThreadPool {
   ThreadPool(size_t threadNum, const std::string& type);
   ~ThreadPool();
 
+  void Stop();
+
   void AddTask(std::function<void()> fn);
 
   size_t Size() const { return threads_.size(); }
@@ -28,5 +30,3 @@ class ThreadPool {
 
   std::string type_;
 };
-
-typedef std::shared_ptr<ThreadPool> ThreadPoolPtr;

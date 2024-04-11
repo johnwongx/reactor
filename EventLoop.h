@@ -2,6 +2,7 @@
 主事件循环，负责epoll调用
 */
 #pragma once
+#include <atomic>
 #include <functional>
 #include <map>
 #include <memory>
@@ -19,7 +20,8 @@ class EventLoop {
   EventLoop(uint32_t timeoutCheckInter = 5);
   ~EventLoop();
 
-  void run();
+  void Run();
+  void Stop();
 
   bool updateChannel(Channel& chan) { return ep_->UpdateChannel(chan); }
   void RemoveChannel(Channel& chan) { ep_->RemoveChannel(chan); }
@@ -51,6 +53,8 @@ class EventLoop {
   std::unique_ptr<Epoll> ep_;
   std::function<void(EventLoop&)> epollTimeoutCallback_;
   int64_t threadId_;
+
+  std::atomic_bool stop_;
 
   std::mutex taskMtx_;
   std::queue<TaskFunc> tasks_;
