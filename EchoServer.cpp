@@ -40,8 +40,8 @@ void EchoServer::OnMessage(std::weak_ptr<Connector> connWeak,
   Buffer sendBuf;
   sendBuf.appendWithHeader(sendMsg.data(), sendMsg.size());
 
-  printf("recv(thread:%ld clientfd=%d):%s\n", syscall(SYS_gettid), conn->fd(),
-         msg.data());
+  // printf("recv(thread:%ld clientfd=%d):%s\n", syscall(SYS_gettid),
+  // conn->fd(), msg.data());
   conn->Send(sendBuf);
 }
 

@@ -3,6 +3,7 @@
 */
 #pragma once
 #include <functional>
+#include <map>
 #include <memory>
 #include <mutex>
 #include <queue>
@@ -10,9 +11,12 @@
 #include "Channel.h"
 #include "Epoll.h"
 
+class Connector;
+
 class EventLoop {
  public:
-  EventLoop();
+  // timeoutCheckInter:连接超时检查间隔， -1时将不检查
+  EventLoop(uint32_t timeoutCheckInter = 5);
   ~EventLoop();
 
   void run();
@@ -29,22 +33,31 @@ class EventLoop {
   typedef std::function<void()> TaskFunc;
   void PushTask(TaskFunc fn) {
     {
-      std::lock_guard guard(mtx_);
+      std::lock_guard guard(taskMtx_);
       tasks_.emplace(fn);
     }
     WeakupTaskProcess();
   }
 
+  void AddConnector(std::shared_ptr<Connector> conn);
+
  private:
   void WeakupTaskProcess();
-  bool ProcessTasks();
+  bool HandleTasks();
+
+  bool HandleTimer();
 
  private:
   std::unique_ptr<Epoll> ep_;
   std::function<void(EventLoop&)> epollTimeoutCallback_;
   int64_t threadId_;
 
-  std::mutex mtx_;
+  std::mutex taskMtx_;
   std::queue<TaskFunc> tasks_;
   std::unique_ptr<Channel> weakupChan_;
+
+  uint32_t timeoutCheckInter_;          // 超时检查间隔
+  std::unique_ptr<Channel> timerChan_;  // 用于检查空闲连接
+  std::mutex connMtx_;
+  std::map<int, std::weak_ptr<Connector>> connList_;
 };

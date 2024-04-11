@@ -9,7 +9,7 @@
 
 TcpServer::TcpServer(const std::string &ip, int port, size_t threadNum)
     : threadNum_(threadNum) {
-  mainLoop_ = std::make_unique<EventLoop>();
+  mainLoop_ = std::make_unique<EventLoop>(-1);
   mainLoop_->setEpollTimeoutCallback(
       std::bind(&TcpServer::onEpollTimeout, this, std::placeholders::_1));
 
@@ -33,8 +33,9 @@ TcpServer::~TcpServer() {}
 void TcpServer::start() { mainLoop_->run(); }
 
 void TcpServer::createNewConnector(int clientFd) {
-  ConnectorPtr conn =
-      std::make_shared<Connector>(*subLoops_[clientFd % threadNum_], clientFd);
+  std::unique_ptr<EventLoop> &loop = subLoops_[clientFd % threadNum_];
+
+  ConnectorPtr conn = std::make_shared<Connector>(*loop, clientFd);
   conn->setCloseCallback(
       std::bind(&TcpServer::connCloseCallback, this, std::placeholders::_1));
   conn->setErrorCallback(
@@ -45,6 +46,7 @@ void TcpServer::createNewConnector(int clientFd) {
   conn->setSendCompleteCallback(
       std::bind(&TcpServer::onSendComplete, this, std::placeholders::_1));
   connectors_[conn->fd()] = conn;
+  loop->AddConnector(conn);
 
   if (newConnectorCallback_) newConnectorCallback_(*conn);
 }

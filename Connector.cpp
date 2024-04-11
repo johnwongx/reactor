@@ -9,23 +9,23 @@
 #include <functional>
 #include <iostream>
 
-Connector::Connector(EventLoop& loop, int clientfd)
+Connector::Connector(EventLoop& loop, int clientfd, uint32_t maxIdleTime)
     : loop_(loop),
       disconnected_(false),
-      socket_(std::make_unique<Socket>(clientfd)) {
+      socket_(std::make_unique<Socket>(clientfd)),
+      maxIdleTime_(maxIdleTime) {
+  auto now = std::chrono::system_clock::now();
+  lastUpdateTime_ = std::chrono::time_point_cast<std::chrono::seconds>(now);
+
   chan_ = std::make_unique<Channel>(clientfd, loop);
   chan_->enableRead();
   chan_->enableET();
   chan_->setInEvtCallbackFunc(std::bind(&Connector::onMessage, this));
   chan_->setOutEvtCallbackFunc(std::bind(&Connector::onSend, this));
-  chan_->setCloseCallback(
-      std::bind(&Connector::OnClose, this, std::placeholders::_1));
   chan_->setErrorCallback(
       std::bind(&Connector::OnError, this, std::placeholders::_1));
-  loop.updateChannel(*chan_);
+  chan_->flushEvents();
 }
-
-Connector::~Connector() { std::cout << "Connector::~Connector()" << std::endl; }
 
 bool Connector::onMessage() {
   // printf("Connector::onMessage() thread(%ld).\n", syscall(SYS_gettid));
@@ -49,6 +49,8 @@ bool Connector::onMessage() {
             // 读取消息不完整，等待完整后再次读取
             break;
           }
+          lastUpdateTime_ = std::chrono::time_point_cast<std::chrono::seconds>(
+              std::chrono::system_clock::now());
 
           inBuf_.erase(0, curBuf.size() + 4);
           messageCallback_(shared_from_this(), curBuf);
@@ -58,7 +60,7 @@ bool Connector::onMessage() {
       }
     } else if (readLen == 0) {
       // 客户端断开连接
-      OnClose(fd());
+      OnClose();
       return true;
     }
   }

@@ -46,12 +46,8 @@ class Channel : public std::enable_shared_from_this<Channel> {
 
   bool handleEvent();
 
-  void setCloseCallback(std::function<void(int)> fn) {
-    connCloseCallback_ = fn;
-  }
-
   void setErrorCallback(std::function<void(int)> fn) {
-    connCloseCallback_ = fn;
+    connErrorCallback_ = fn;
   }
 
   void Remove();
@@ -71,7 +67,6 @@ class Channel : public std::enable_shared_from_this<Channel> {
 
   std::function<bool()> inEvtFunc_;
   std::function<bool()> outEvtFunc_;
-  std::function<void(int)> connCloseCallback_;
   std::function<void(int)> connErrorCallback_;
 };
 typedef std::shared_ptr<Channel> ChannelPtr;

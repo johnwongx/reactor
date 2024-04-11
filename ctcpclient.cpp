@@ -115,6 +115,8 @@ int main(int argc, char *argv[]) {
     return -1;
   }
 
+  sleep(20);
+
   char buffer[1024];
   size_t kMsgCount = 100;
   const uint32_t kHeaderLen = sizeof(uint32_t);
@@ -127,7 +129,7 @@ int main(int argc, char *argv[]) {
     memcpy(buffer, (char *)&len, kHeaderLen);
     if (!c.send(buffer, len + kHeaderLen)) {
       perror("send()");
-      break;
+      return -1;
     }
   }
 
@@ -138,7 +140,7 @@ int main(int argc, char *argv[]) {
     int recvLen = recv(c.m_sockfd, buffer, sizeof(buffer), 0);
     if (recvLen <= 0) {
       perror("recv()");
-      break;
+      return -1;
     }
     inBuf.append(buffer, recvLen);
 

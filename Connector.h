@@ -3,6 +3,8 @@
 */
 #pragma once
 #include <atomic>
+#include <chrono>
+#include <iostream>
 #include <memory>
 
 #include "Buffer.h"
@@ -12,8 +14,9 @@
 
 class Connector : public std::enable_shared_from_this<Connector> {
  public:
-  Connector(EventLoop &loop, int clientfd);
-  ~Connector();
+  Connector(EventLoop &loop, int clientfd,
+            uint32_t maxIdleTime = 10 /*seconds*/);
+  ~Connector() = default;
 
   int fd() const { return socket_->fd(); }
 
@@ -25,10 +28,10 @@ class Connector : public std::enable_shared_from_this<Connector> {
     connErrorCallback_ = fn;
   }
 
-  void OnClose(int fd) {
+  void OnClose() {
     disconnected_ = true;
     chan_->Remove();
-    if (connCloseCallback_) connCloseCallback_(fd);
+    if (connCloseCallback_) connCloseCallback_(chan_->fd());
   }
 
   void OnError(int fd) {
@@ -48,6 +51,14 @@ class Connector : public std::enable_shared_from_this<Connector> {
 
   // 如果和事件循环在同一个类中将直接发送，否则异步发送
   void Send(const Buffer &info);
+
+  // 是否超过最大空闲时间
+  bool IsTimeout() const {
+    auto now = std::chrono::time_point_cast<std::chrono::seconds>(
+        std::chrono::system_clock::now());
+    auto diff = now - lastUpdateTime_;
+    return diff > maxIdleTime_;
+  }
 
  private:
   bool onMessage();
@@ -69,6 +80,10 @@ class Connector : public std::enable_shared_from_this<Connector> {
   std::function<void(std::shared_ptr<Connector>, const Buffer &)>
       messageCallback_;
   std::function<void(int)> sendCompleteCallback_;
+
+  std::chrono::seconds maxIdleTime_;
+  std::chrono::time_point<std::chrono::system_clock, std::chrono::seconds>
+      lastUpdateTime_;
 };
 
 typedef std::shared_ptr<Connector> ConnectorPtr;

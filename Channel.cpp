@@ -26,6 +26,5 @@ bool Channel::handleEvent() {
     return false;
   }
 }
-
 void Channel::flushEvents() { loop_.updateChannel(*this); }
 void Channel::Remove() { loop_.RemoveChannel(*this); }
