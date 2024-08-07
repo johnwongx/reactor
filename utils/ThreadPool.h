@@ -1,4 +1,7 @@
-/*线程池*/
+/*
+线程池: 维护一个任务队列，运行过程中，多个线程尝试从任务队列中取出任务，
+取出后运行任务。
+*/
 #pragma once
 #include <atomic>
 #include <condition_variable>

@@ -1,5 +1,6 @@
 /*
-socket属性设置，以及其他相关操作封装
+socket 属性设置，以及其他相关操作封装。
+主要是套接字本身的属性设置。
 */
 #pragma once
 #include <errno.h>

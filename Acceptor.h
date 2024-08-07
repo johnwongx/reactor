@@ -1,5 +1,7 @@
 /*
-listen channel封装
+处理新连接，收到新连接的事件后, 接收连接，然后通知外部处理。
+
+listen channel 封装
 */
 #pragma once
 #include <memory>

@@ -1,4 +1,7 @@
 /*
+fd 的负载均衡设施。将fd 按照策略分配到不同的EventLoop 中（也就是Epoll）。
+EventLoop 的创建者与操作者, Connector （连接）的持有者。
+
 服务器封装，负责启动与运行
 */
 #pragma once

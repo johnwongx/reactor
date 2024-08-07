@@ -8,6 +8,7 @@ EchoServer::EchoServer(const std::string& ip, int port, size_t subThreadNum,
                        size_t workThreadNum)
     : tcpServ_(ip, port, subThreadNum),
       workThreadPool_(new ThreadPool(workThreadNum, "WORK")) {
+  // 启动时向tcpServ_中设置回调，以处理各种情况所需的业务逻辑
   tcpServ_.SetNewConnectorCallback(
       std::bind(&EchoServer::HandleNewConnector, this, std::placeholders::_1));
   tcpServ_.SetConnectorCloseCallback(
@@ -30,6 +31,7 @@ void EchoServer::Stop() {
 void EchoServer::HandleMessage(std::weak_ptr<Connector> conn,
                                const Buffer& msg) {
   if (workThreadPool_->Empty()) {
+    // 没有工作线程直接调用
     OnMessage(conn, msg);
   } else {
     workThreadPool_->AddTask(
@@ -43,6 +45,7 @@ void EchoServer::OnMessage(std::weak_ptr<Connector> connWeak,
   ConnectorPtr conn = connWeak.lock();
   if (!conn) return;
 
+  // 组装消息
   std::string sendMsg("recv:");
   sendMsg.append(msg.data(), msg.size());
   Buffer sendBuf;

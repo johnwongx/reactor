@@ -1,4 +1,6 @@
 /*
+数据收发处理，收到来自channel 的事件通知后，进行具体的收发操作。
+
 客户端连接channel管理
 */
 #pragma once

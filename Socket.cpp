@@ -46,6 +46,7 @@ void Socket::listen(int backlog) {
 int Socket::accept(InetAddress &clientAddr) {
   sockaddr_in peerAddr;
   socklen_t sockLen = sizeof peerAddr;
+  // accept4 可以在接收时直接将套接字设置为非阻塞
   int clientfd = accept4(fd_, (sockaddr *)&peerAddr, &sockLen, O_NONBLOCK);
 
   clientAddr.setAddr(peerAddr);
