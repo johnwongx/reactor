@@ -3,7 +3,7 @@
 
 类图：
 
-![](.\doc\reactor.png)
+![](https://github.com/johnwongx/reactor/blob/master/doc/reactor.png)
 
 网络处理内部实际分为epoll部分的事件监听与发现，Epoll与Channel负责处理。这就相当于fd有两个侧面，其中一个封装为Socket，另一个封装为Channel.
 
